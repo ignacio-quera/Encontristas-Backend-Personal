@@ -31,15 +31,42 @@ router.get("lobby.show", "/", async (ctx) => {
 
 router.post("lobby.create", "/", async (ctx) => {
     try {
-        const { hostId, name } = ctx.request.body
+        const { userId, name } = ctx.request.body
         const lobby = await ctx.orm.Lobby.create({
-            hostId, name,
+            hostId: userId,
+            name,
         });
+        const participant = await ctx.orm.Participant.create({
+            lobbyId: lobby.id,
+            userId: userId,
+        })
         ctx.body = lobby;
         ctx.status = 201;
     } catch (error) {
         ctx.body = error;
         ctx.status = 400;
+    }
+})
+
+router.post("lobby.join", "/", async (ctx) => {
+    try {
+        const { userId, lobbyId } = ctx.request.body
+        const lobby = await ctx.orm.Lobby.findByPk(lobbyId)
+        if (lobby == null) {
+            ctx.status = 404
+            return
+        }
+        const user = await ctx.orm.User.findByPk(userId)
+        if (user == null) {
+            ctx.status = 404
+            return
+        }
+        const participant = await ctx.orm.Participant.create({ lobbyId, userId })
+        ctx.body = participant
+        ctx.status = 201
+    } catch (error) {
+        ctx.body = error
+        ctx.status = 400
     }
 })
 
@@ -62,7 +89,7 @@ router.put("lobby.update", "/", async (ctx) => {
 
 router.delete("lobby.delete", "/", async (ctx) => {
     try {
-        const { id } = ctx.request.body
+        const { id } = ctx.query
         const lobby = await ctx.orm.Lobby.findByPk(id);
         if (lobby == null) {
             ctx.status = 404

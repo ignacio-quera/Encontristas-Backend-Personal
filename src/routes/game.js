@@ -6,6 +6,10 @@ router.get("game.show", "/", async (ctx) => {
     try {
         const { id } = ctx.query
         const game = await ctx.orm.Game.findByPk(id)
+        if (game == null) {
+            ctx.status = 404
+            return
+        }
         ctx.body = game
         ctx.status = 200
     } catch (error) {
@@ -39,7 +43,7 @@ router.post("game.create", "/", async (ctx) => {
 
 router.delete("game.delete", "/", async (ctx) => {
     try {
-        const { id } = ctx.request.body
+        const { id } = ctx.query
         const game = await ctx.orm.Game.findByPk(id)
         if (game == null) {
             ctx.status = 404
