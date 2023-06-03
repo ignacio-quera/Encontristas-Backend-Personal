@@ -44,6 +44,7 @@ sudo -u postgres psql -c "ALTER USER encontrista_user WITH PASSWORD 'encontrado1
 sudo -u postgres createdb encontrista_db_development
 sudo -u postgres createdb encontrista_db_test
 sudo -u postgres createdb encontrista_db_production
+yarn sequelize-cli db:migrate
 
 yarn dev
 ```
