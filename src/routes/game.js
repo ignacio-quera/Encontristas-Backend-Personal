@@ -38,6 +38,7 @@ router.post("game.create", "/", async (ctx) => {
         const lobby = await ctx.orm.Lobby.findByPk(lobbyId)
         if (lobby == null) {
             ctx.status = 404
+            ctx.body = "Lobby not found"
             return
         }
         const participants = await ctx.orm.Participant.findAll({
@@ -48,6 +49,8 @@ router.post("game.create", "/", async (ctx) => {
         // Destroy lobby
         for (const participant of participants) await participant.destroy()
         await lobby.destroy()
+        console.log(lobby)
+        console.log(participants)
         // Create game instance
         const game = await ctx.orm.Game.create({
             "name": lobby.name,
@@ -56,7 +59,7 @@ router.post("game.create", "/", async (ctx) => {
             "turn": 0,
         })
         // Create players and their characters
-        const i = 0
+        let i = 0
         for (const participant of participants) {
             const player = await ctx.orm.Player.create({
                 gameId: game.id,
@@ -79,6 +82,7 @@ router.post("game.create", "/", async (ctx) => {
         ctx.body = game
         ctx.status = 201
     } catch (error) {
+        console.error(error)
         ctx.body = error
         ctx.status = 400
     }
