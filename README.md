@@ -33,3 +33,17 @@ crear db encontrista_db_development, encontrista_db_test, encontrista_db_product
 Crear usuarios
 
 
+```bash
+# Instalar nvm
+# npm install yarn
+cp .env.example .env
+nvm use node
+yarn install
+sudo -u postgres createuser --superuser encontrista_user
+sudo -u postgres psql -c "ALTER USER encontrista_user WITH PASSWORD 'encontrado123'"
+sudo -u postgres createdb encontrista_db_development
+sudo -u postgres createdb encontrista_db_test
+sudo -u postgres createdb encontrista_db_production
+
+yarn dev
+```
