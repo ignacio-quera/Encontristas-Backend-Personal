@@ -6,11 +6,11 @@ router.post("characters.move", "/move", async (ctx) => {
     const { characterId, direction } = ctx.request.body;
     try {
         const character = await ctx.orm.Character.findByPk(characterId);
-        // if (character.movement <= 0) {
-        //      ctx.body = "No movement left";
-        //      ctx.status = 401;
-        //      return;
-        // }
+        if (character.movement <= 0) {
+             ctx.body = "No movement left";
+             ctx.status = 401;
+             return;
+        }
         const gameId = character.gameId;
         console.log('character before', character)
         ctx.body = direction;
