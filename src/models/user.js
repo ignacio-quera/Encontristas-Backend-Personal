@@ -17,9 +17,32 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   User.init({
-    username: DataTypes.STRING,
-    password: DataTypes.STRING,
-    mail: DataTypes.STRING
+    username: {
+      type:DataTypes.STRING,
+      validate: {
+        isAlphanumeric: {
+          msg: "Username must be alphanumeric"
+        }
+      },
+    },
+    password: {
+      type:DataTypes.STRING,
+      validate: {
+        isValidPassword(value) {
+          if (value.length < 8) {
+            throw new Error('The password must be at least 8 characters long')
+          }
+        }
+      },
+    },
+    mail: {
+      type:DataTypes.STRING,
+      validate: {
+        isEmail: {
+          msg: "mail must have mail format"
+        }
+      },
+    },
   }, {
     sequelize,
     modelName: 'User',
