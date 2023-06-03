@@ -7,7 +7,7 @@ const items = require("./routes/items.js")
 
 const router = new Router();
 
-router.use(characters.routes());
+router.use('/characters',characters.routes());
 router.use('/users', users.routes());
 router.use('/lobby', lobby.routes());
 router.use('/game', game.routes());
