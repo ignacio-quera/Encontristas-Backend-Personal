@@ -74,7 +74,7 @@ router.post("characters.action", "/action", async(ctx) => {
     const {characterId, gameId, targetId} = ctx.request.body;
     const character = await ctx.orm.Characters.findByPk(characterId);
     const target = await ctx.orm.Characters.findByPk(targetId);
-    
+    await target.update({ hp: hp - character.dmg});
 })
 
 router.post("characters.recieve_dmg", "/", async(ctx) => {
