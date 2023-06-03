@@ -2,52 +2,16 @@ const Router = require('koa-router');
 
 const router = new Router();
 
-const characters = {
-    "wizard": {
-        "movement": 6,
-        "hp": 10,
-        "dmg": 8,
-        "action": "spell"
-    },
-    "ranger": {
-        "movement": 6,
-        "hp": 20,
-        "dmg": 6,
-        "action": "arrow"
-    },
-    "rogue": {
-        "movement": 6,
-        "hp": 12,
-        "dmg": 7,
-        "action": "sword"
-    },
-    "goblin": {
-        "movement": 5,
-        "hp": 7,
-        "dmg": 2,
-        "action": "dagger"
-    },
-}
-
-router.get("characters.list", "/", async (ctx) => {
-    ctx.body = characters;
-})
-
-router.get("characters.show", "/:type", async (ctx) => {
-    try {
-        const character = await ctx.orm.Characters.findByPk(ctx.params.type);
-        ctx.body = character;
-        ctx.status = 200;
-    } catch (error) {
-        ctx.body = error;
-        ctx.status = 400;
-    }
-})
-
 router.post("characters.move", "/move", async (ctx) => {
-    const { characterId, gameId, direction } = ctx.request.body;
+    const { characterId, direction } = ctx.request.body;
     try {
         const character = await ctx.orm.Character.findByPk(characterId);
+        // if (character.movement <= 0) {
+        //      ctx.body = "No movement left";
+        //      ctx.status = 401;
+        //      return;
+        // }
+        const gameId = character.gameId;
         console.log('character before', character)
         ctx.body = direction;
         let [x, y] = [character.x, character.y]
@@ -56,18 +20,39 @@ router.post("characters.move", "/move", async (ctx) => {
                 y -= 1
                 break;
             case "down":
-                await character.update({ y: character.y + 1 });
+                y += 1
                 break;
             case "left":
-                await character.update({ y: character.y - 1 });
+                x -= 1
                 break;
             case "right":
-                await character.update({ y: character.y + 1 });
+                x += 1
                 break;
         }
         // checkear
+        const characters = await ctx.orm.Character.findAll({
+            where: {
+                gameId: gameId,
+            },
+        })
+        for (const character of characters) {
+            if ([character.x, character.y] == [x, y]) {
+                ctx.body = "Character in the way";
+                ctx.status = 401;
+                return;
+            }   
+        }
+        const items = await ctx.orm.Item.findAll({
+            where: {
+                gameId: gameId,
+            },
+        })
         // updatear
+        character.x, character.y = x, y;
         console.log('character after', character)
+        character.update({x: x, y: y});
+        character.update({movement: character.movement - 1})
+        ctx.body = [character.x, character.y]
         ctx.status = 201;
     } catch (error) {
         console.error(error)

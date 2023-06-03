@@ -1,5 +1,7 @@
 const Router = require('koa-router');
 
+const character_data = require('../data/characters')
+
 const router = new Router();
 
 router.get("game.show", "/", async (ctx) => {
@@ -65,16 +67,18 @@ router.post("game.create", "/", async (ctx) => {
                 gameId: game.id,
                 userId: participant.userId,
             })
+            if (participant.userId === game.pm) { continue };
+            const type = ['wizard', 'rogue', 'range'][Math.floor(Math.random()*3)];
             await ctx.orm.Character.create({
                 gameId: game.id,
                 playerId: player.id,
-                type: 'wizard',
+                type: type,
                 x: i,
                 y: 0,
-                movement: 0,
+                movement: character_data[type]["movement"],
                 turn: i,
-                hp: 100,
-                dmg: 10,
+                hp: character_data[type]["hp"],
+                dmg: character_data[type]["dmg"],
             })
             i += 1
         }

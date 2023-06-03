@@ -1,4 +1,4 @@
-const characters = {
+const character_data = {
     "wizard":  {
         "movement": 6,
         "hp": 10,
@@ -21,8 +21,8 @@ const characters = {
         "movement": 5,
         "hp": 7,
         "dmg": 2,
-        "action": "dagger"
+        "action": "sword"
     },
 }
 
-module.exports = characters;
+module.exports = character_data;
