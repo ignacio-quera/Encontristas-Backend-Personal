@@ -4,8 +4,10 @@ const router = new Router();
 
 router.post("users.create","/",async(ctx)=>{
     try{
+        ctx.body = ctx.request.body;
         const user = await ctx.orm.User.create(ctx.request.body);
-        ctx.body = user;
+        console.log(typeof ctx.request.body);
+        ctx.body = user; 
         ctx.status = 201;
     } catch(error){
         ctx.body = error;
