@@ -1,4 +1,5 @@
 const Router = require('koa-router');
+const { Op } = require('sequelize')
 
 const router = new Router();
 
@@ -76,21 +77,73 @@ router.post("characters.move", "/move", async (ctx) => {
     }
 })
 
+async function killCharacter(character) {
+    await character.destroy()
+}
+
+async function damageCharacter(attacker, target, dmg) {
+    target.update({
+        hp: target.hp - dmg,
+    })
+    if (target.hp <= 0) {
+        killCharacter(target)
+    }
+}
+
 router.post("characters.action", "/action", async (ctx) => {
-    const { characterId, gameId, targetId } = ctx.request.body;
-    const character = await ctx.orm.Characters.findByPk(characterId);
-    const target = await ctx.orm.Characters.findByPk(targetId);
-    await target.update({ hp: hp - character.dmg });
+    const { characterId, targetId } = ctx.request.body
+    const character = await ctx.orm.Character.findByPk(characterId)
+    const target = await ctx.orm.Character.findByPk(targetId)
+    const game = await ctx.orm.Game.findByPk(character.gameId)
+    // Do checks
+    if (character == null) {
+        ctx.status = 404
+        ctx.body = "Character not found"
+        return
+    }
+    if (target == null) {
+        ctx.status = 404
+        ctx.body = "Target not found"
+        return
+    }
+    if (target.gameId !== game.id) {
+        ctx.status = 400
+        ctx.body = "Target is not in the same game as character"
+        return
+    }
+    if (character.turn !== game.turn) {
+        ctx.status = 400
+        ctx.body = "It is not the turn of the given character"
+        return
+    }
+    // Make attack
+    await damageCharacter(character, target, character.dmg)
+    // Advance turn
+    let nextChar = await ctx.orm.Character.findOne({
+        where: {
+            turn: {
+                [Op.gt]: game.turn,
+            },
+        },
+        order: [
+            ['turn', 'ASC'],
+        ],
+    })
+    if (nextChar == null) {
+        // No further turns (end of the round)
+        // Start from the beggining
+        nextChar = await ctx.orm.Character.findOne({
+            order: [
+                ['turn', 'ASC'],
+            ],
+        })
+    }
+    await game.update({
+        turn: nextChar == null ? 0 : nextChar.turn,
+    })
+
+    ctx.status = 200
+    ctx.body = `Dealt ${character.dmg} points of damage, target now has ${target.hp}`
 })
-
-router.post("characters.recieve_dmg", "/", async (ctx) => {
-
-})
-
-router.post("characters.new_turn", "/", async (ctx) => {
-
-})
-
-
 
 module.exports = router;
