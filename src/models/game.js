@@ -15,7 +15,6 @@ module.exports = (sequelize, DataTypes) => {
   }
   Game.init({
     name: DataTypes.STRING,
-    date: DataTypes.DATE,
     pm: DataTypes.INTEGER,
     level: DataTypes.INTEGER,
     turn: DataTypes.INTEGER
