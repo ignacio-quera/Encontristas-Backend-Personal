@@ -6,7 +6,7 @@ Usuario: username, email, password
 
 Jugador: usuario, juego
 
-Juego: name, date, pm, nivel, turno
+Juego: name, pm, nivel, turno
 
 Personaje: tipo, juego, jugador, posicion(x,y), movimiento, turno, vida, daño
 
