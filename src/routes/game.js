@@ -2,6 +2,18 @@ const Router = require('koa-router');
 
 const router = new Router();
 
+router.get("game.show", "/", async (ctx) => {
+    try {
+        const { id } = ctx.query
+        const game = await ctx.orm.Game.findByPk(id)
+        ctx.body = game
+        ctx.status = 200
+    } catch (error) {
+        ctx.body = error
+        ctx.status = 400
+    }
+})
+
 router.post("game.create", "/", async (ctx) => {
     try {
         const { lobbyId } = ctx.request.body
@@ -35,7 +47,7 @@ router.delete("game.delete", "/", async (ctx) => {
         }
         await game.destroy()
         ctx.body = game
-        ctx.status = 201
+        ctx.status = 200
     } catch (error) {
         ctx.body = error
         ctx.status = 400
