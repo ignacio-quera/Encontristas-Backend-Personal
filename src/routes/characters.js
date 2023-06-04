@@ -49,9 +49,9 @@ router.post("characters.move", "/move", async (ctx) => {
     try {
         const character = await ctx.orm.Character.findByPk(characterId);
         if (character.movement <= 0) {
-             ctx.body = "No movement left";
-             ctx.status = 401;
-             return;
+            ctx.body = "No movement left";
+            ctx.status = 401;
+            return;
         }
         const gameId = character.gameId;
         console.log('character before', character)
@@ -83,7 +83,7 @@ router.post("characters.move", "/move", async (ctx) => {
                 ctx.body = "Character in the way";
                 ctx.status = 401;
                 return;
-            }   
+            }
         }
         const items = await ctx.orm.Item.findAll({
             where: {
@@ -94,17 +94,19 @@ router.post("characters.move", "/move", async (ctx) => {
             if (item.x === x && item.y === 1) {
                 pickedItem = itemData[item.type];
                 character.update(
-                    {hp: character.hp + (pickedItem["hp"] || 0),
-                    dmg: character.dmg + (pickedItem["dmg"] || 0),
-                    movement: character.movement + (pickedItem["dmg"] || 0)}
+                    {
+                        hp: character.hp + (pickedItem["hp"] || 0),
+                        dmg: character.dmg + (pickedItem["dmg"] || 0),
+                        movement: character.movement + (pickedItem["dmg"] || 0)
+                    }
                 )
             }
         }
         // updatear
         character.x, character.y = x, y;
         console.log('character after', character)
-        character.update({x: x, y: y});
-        character.update({movement: character.movement - 1})
+        character.update({ x: x, y: y });
+        character.update({ movement: character.movement - 1 })
         ctx.body = [character.x, character.y]
         ctx.status = 201;
     } catch (error) {
@@ -135,6 +137,27 @@ async function killCharacter(orm, character) {
                         userId: game.pm,
                     },
                 }],
+            })
+            game.update({
+                finished: true,
+            })
+        }
+    } else {
+        // Player character died
+        if (orm.Character.findOne({
+            include: [{
+                model: orm.Player,
+                where: {
+                    userId: {
+                        [Op.ne]: game.pm,
+                    },
+                },
+            }],
+        }) == null) {
+            // No players left
+            // Game finished
+            game.update({
+                finished: true,
             })
         }
     }

@@ -2,10 +2,10 @@ const item_data = {
     "health_potion": {
         "hp": 25,
     },
-    "magic weapon": {
+    "magic_weapon": {
         "dmg": 15
     },
-    "cursed weapon": {
+    "cursed_weapon": {
         "hp": -10,
         "dmg": 25
     },
