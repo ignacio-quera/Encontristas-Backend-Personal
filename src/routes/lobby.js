@@ -79,10 +79,16 @@ router.post("lobby.join", "/join", async (ctx) => {
             ctx.body = "User not found"
             return
         }
+        if (await ctx.orm.Participant.findOne({ where: { lobbyId, userId } }) != null) {
+            ctx.status = 204
+            ctx.body = "Already joined"
+            return
+        }
         const participant = await ctx.orm.Participant.create({ lobbyId, userId })
         ctx.body = participant
         ctx.status = 201
     } catch (error) {
+        console.error(error)
         ctx.body = error
         ctx.status = 400
     }

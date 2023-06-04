@@ -1,5 +1,6 @@
 const Router = require('koa-router');
 const { Op } = require('sequelize')
+const { advanceTurn } = require('./game.js')
 
 const router = new Router();
 
@@ -77,16 +78,38 @@ router.post("characters.move", "/move", async (ctx) => {
     }
 })
 
-async function killCharacter(character) {
+async function killCharacter(orm, character) {
+    // Destroy the character
     await character.destroy()
+    // Go up a level for every enemy killed
+    const game = await orm.Game.findByPk(character.gameId)
+    const player = await orm.Player.findByPk(character.playerId)
+    if (player.userId === game.pm) {
+        // Enemy died
+        await game.update({
+            level: game.level + 1,
+        })
+        if (game.level >= 3) {
+            // Game finished
+            // Kill all enemies
+            await orm.Character.destroy({
+                include: [{
+                    model: orm.Player,
+                    where: {
+                        userId: game.pm,
+                    },
+                }],
+            })
+        }
+    }
 }
 
-async function damageCharacter(attacker, target, dmg) {
-    target.update({
+async function damageCharacter(orm, attacker, target, dmg) {
+    await target.update({
         hp: target.hp - dmg,
     })
     if (target.hp <= 0) {
-        killCharacter(target)
+        await killCharacter(orm, target)
     }
 }
 
@@ -117,30 +140,9 @@ router.post("characters.action", "/action", async (ctx) => {
         return
     }
     // Make attack
-    await damageCharacter(character, target, character.dmg)
+    await damageCharacter(ctx.orm, character, target, character.dmg)
     // Advance turn
-    let nextChar = await ctx.orm.Character.findOne({
-        where: {
-            turn: {
-                [Op.gt]: game.turn,
-            },
-        },
-        order: [
-            ['turn', 'ASC'],
-        ],
-    })
-    if (nextChar == null) {
-        // No further turns (end of the round)
-        // Start from the beggining
-        nextChar = await ctx.orm.Character.findOne({
-            order: [
-                ['turn', 'ASC'],
-            ],
-        })
-    }
-    await game.update({
-        turn: nextChar == null ? 0 : nextChar.turn,
-    })
+    await advanceTurn(game)
 
     ctx.status = 200
     ctx.body = `Dealt ${character.dmg} points of damage, target now has ${target.hp}`

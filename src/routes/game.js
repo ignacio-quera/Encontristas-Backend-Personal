@@ -1,6 +1,40 @@
 const Router = require('koa-router');
+const characterData = require('../data/characters.js')
 
 const router = new Router();
+
+async function advanceTurn(game) {
+    // Find the next character in line
+    let nextChar = await ctx.orm.Character.findOne({
+        where: {
+            turn: {
+                [Op.gt]: game.turn,
+            },
+        },
+        order: [
+            ['turn', 'ASC'],
+        ],
+    })
+    if (nextChar == null) {
+        // No further turns (end of the round)
+        // Start from the beggining
+        nextChar = await ctx.orm.Character.findOne({
+            order: [
+                ['turn', 'ASC'],
+            ],
+        })
+    }
+    // Update the movement of the next character
+    if (nextChar != null) {
+        nextChar.update({
+            movement: characterData[nextChar.type].movement,
+        })
+    }
+    // Update the current turn
+    await game.update({
+        turn: nextChar == null ? 0 : nextChar.turn,
+    })
+}
 
 router.get("game.show", "/", async (ctx) => {
     try {
@@ -56,8 +90,9 @@ router.post("game.create", "/", async (ctx) => {
             "name": lobby.name,
             "pm": lobby.hostId,
             "level": 1,
-            "turn": 0,
+            "turn": -1,
         })
+        await advanceTurn(game)
         // Create players and their characters
         let i = 0
         for (const participant of participants) {
@@ -121,4 +156,7 @@ router.delete("game.delete", "/", async (ctx) => {
 })
 
 
-module.exports = router
+module.exports = {
+    gameRouter: router,
+    advanceTurn,
+}
