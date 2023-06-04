@@ -1,4 +1,6 @@
 const Router = require('koa-router');
+const { Op } = require('sequelize')
+const { advanceTurn } = require('./game.js')
 
 const itemData = require('../data/items.js')
 
@@ -74,21 +76,74 @@ router.post("characters.move", "/move", async (ctx) => {
     }
 })
 
+async function killCharacter(orm, character) {
+    // Destroy the character
+    await character.destroy()
+    // Go up a level for every enemy killed
+    const game = await orm.Game.findByPk(character.gameId)
+    const player = await orm.Player.findByPk(character.playerId)
+    if (player.userId === game.pm) {
+        // Enemy died
+        await game.update({
+            level: game.level + 1,
+        })
+        if (game.level >= 3) {
+            // Game finished
+            // Kill all enemies
+            await orm.Character.destroy({
+                include: [{
+                    model: orm.Player,
+                    where: {
+                        userId: game.pm,
+                    },
+                }],
+            })
+        }
+    }
+}
+
+async function damageCharacter(orm, attacker, target, dmg) {
+    await target.update({
+        hp: target.hp - dmg,
+    })
+    if (target.hp <= 0) {
+        await killCharacter(orm, target)
+    }
+}
+
 router.post("characters.action", "/action", async (ctx) => {
-    const { characterId, gameId, targetId } = ctx.request.body;
-    const character = await ctx.orm.Characters.findByPk(characterId);
-    const target = await ctx.orm.Characters.findByPk(targetId);
-    await target.update({ hp: hp - character.dmg });
+    const { characterId, targetId } = ctx.request.body
+    const character = await ctx.orm.Character.findByPk(characterId)
+    const target = await ctx.orm.Character.findByPk(targetId)
+    // Do checks
+    if (character == null) {
+        ctx.status = 404
+        ctx.body = "Character not found"
+        return
+    }
+    const game = await ctx.orm.Game.findByPk(character.gameId)
+    if (target == null) {
+        ctx.status = 404
+        ctx.body = "Target not found"
+        return
+    }
+    if (target.gameId !== game.id) {
+        ctx.status = 400
+        ctx.body = "Target is not in the same game as character"
+        return
+    }
+    if (character.turn !== game.turn) {
+        ctx.status = 400
+        ctx.body = "It is not the turn of the given character"
+        return
+    }
+    // Make attack
+    await damageCharacter(ctx.orm, character, target, character.dmg)
+    // Advance turn
+    await advanceTurn(ctx.orm, game)
+
+    ctx.status = 200
+    ctx.body = `Dealt ${character.dmg} points of damage, target now has ${target.hp}`
 })
-
-router.post("characters.recieve_dmg", "/", async (ctx) => {
-
-})
-
-router.post("characters.new_turn", "/", async (ctx) => {
-
-})
-
-
 
 module.exports = router;

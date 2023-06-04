@@ -1,8 +1,43 @@
 const Router = require('koa-router');
+const characterData = require('../data/characters.js')
+const { Op } = require('sequelize')
 
 const character_data = require('../data/characters')
 
 const router = new Router();
+
+async function advanceTurn(orm, game) {
+    // Find the next character in line
+    let nextChar = await orm.Character.findOne({
+        where: {
+            turn: {
+                [Op.gt]: game.turn,
+            },
+        },
+        order: [
+            ['turn', 'ASC'],
+        ],
+    })
+    if (nextChar == null) {
+        // No further turns (end of the round)
+        // Start from the beggining
+        nextChar = await orm.Character.findOne({
+            order: [
+                ['turn', 'ASC'],
+            ],
+        })
+    }
+    // Update the movement of the next character
+    if (nextChar != null) {
+        nextChar.update({
+            movement: characterData[nextChar.type].movement,
+        })
+    }
+    // Update the current turn
+    await game.update({
+        turn: nextChar == null ? 0 : nextChar.turn,
+    })
+}
 
 router.get("game.show", "/", async (ctx) => {
     try {
@@ -48,18 +83,14 @@ router.post("game.create", "/", async (ctx) => {
                 lobbyId: lobby.id,
             },
         })
-        // Destroy lobby
-        for (const participant of participants) await participant.destroy()
-        await lobby.destroy()
-        console.log(lobby)
-        console.log(participants)
         // Create game instance
         const game = await ctx.orm.Game.create({
             "name": lobby.name,
             "pm": lobby.hostId,
             "level": 1,
-            "turn": 0,
+            "turn": -1,
         })
+        await advanceTurn(ctx.orm, game)
         // Create players and their characters
         let i = 0
         for (const participant of participants) {
@@ -82,6 +113,9 @@ router.post("game.create", "/", async (ctx) => {
             })
             i += 1
         }
+        // Destroy lobby
+        for (const participant of participants) await participant.destroy()
+        await lobby.destroy()
 
         ctx.body = game
         ctx.status = 201
@@ -125,4 +159,7 @@ router.delete("game.delete", "/", async (ctx) => {
 })
 
 
-module.exports = router
+module.exports = {
+    gameRouter: router,
+    advanceTurn,
+}
