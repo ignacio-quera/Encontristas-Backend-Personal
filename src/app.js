@@ -3,7 +3,7 @@ const { koaBody } = require("koa-body");
 const koaLogger = require("koa-logger");
 // const cors = require("")
 const router = require("./routes");
-const orm = require("./models").default;
+const orm = require("./models");
 // const cors = require("@koa/cors");
 
 const app = new Koa();
