@@ -57,10 +57,16 @@ router.get("game.show", "/", async (ctx) => {
                 gameId: game.id,
             },
         })
+        const items = await ctx.orm.Item.findAll({
+            where: {
+                gameId: game.id,
+            },
+        })
         ctx.body = {
             game,
             players,
             characters,
+            items,
         }
         ctx.status = 200
     } catch (error) {
@@ -99,7 +105,7 @@ router.post("game.create", "/", async (ctx) => {
                 userId: participant.userId,
             })
             if (participant.userId === game.pm) { continue };
-            const type = ['wizard', 'rogue', 'range'][Math.floor(Math.random()*3)];
+            const type = ['wizard', 'rogue', 'ranger'][Math.floor(Math.random() * 3)];
             await ctx.orm.Character.create({
                 gameId: game.id,
                 playerId: player.id,
