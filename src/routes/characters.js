@@ -2,9 +2,47 @@ const Router = require('koa-router');
 const { Op } = require('sequelize')
 const { advanceTurn } = require('./game.js')
 
-const itemData = require('../data/items.js')
+const itemData = require('../data/items.js');
+
+const characterData = require('../data/characters.js')
 
 const router = new Router();
+
+router.post("characters.create", "/", async (ctx) => {
+    const {gameId, type, x, y} = ctx.request.body;
+    try {
+        const game = await ctx.orm.Game.findByPk(gameId);
+        const pmUserId = game.pm
+        const pmPlayerId = ctx.orm.Player.findOne({
+            where: {userId: pmUserId, gameId: gameId}
+        })
+        lastTurn = await ctx.orm.Character.findOne({
+            where: {
+                gameId: gameId,
+            },
+            order: [
+                ['turn', 'DESC'],
+            ]
+        })
+        const character = await ctx.orm.Character.create({
+            gameId: gameId,
+            playerId: pmPlayerId,
+            type: type,
+            x: x,
+            y: y,
+            movement: characterData[type]["movement"],
+            turn: lastTurn == null? 0 : lastTurn.turn + 1,
+            hp: characterData[type]["hp"],
+            dmg: characterData[type]["dmg"],
+        })
+        ctx.body = character;
+        ctx.status = 201;
+    } catch(error) {
+        console.error(error)
+        ctx.body = error;
+        ctx.status = 400;
+    }
+})
 
 router.post("characters.move", "/move", async (ctx) => {
     const { characterId, direction } = ctx.request.body;
