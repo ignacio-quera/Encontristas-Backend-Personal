@@ -14,6 +14,11 @@ router.post("characters.create", "/", async (ctx) => {
     gameId, type, x, y,
   } = ctx.request.body;
   const game = await ctx.orm.Game.findByPk(gameId);
+  if (game == null) {
+    ctx.status = 404;
+    ctx.body = "Game not found";
+    return
+  }
   const pmUserId = game.pm;
   const pmPlayer = await ctx.orm.Player.findOne({
     where: { userId: pmUserId, gameId },
@@ -72,7 +77,9 @@ router.post("characters.move", "/move", async (ctx) => {
       x += 1;
       break;
     default:
-      break;
+      ctx.status = 400;
+      ctx.body = "Invalid direction";
+      return;
   }
   // checkear
   const characters = await ctx.orm.Character.findAll({
@@ -125,15 +132,29 @@ async function killCharacter(orm, character) {
     await game.update({
       level: game.level + 1,
     });
-    if (game.level >= 3) {
+    const lastEnemy = await orm.Character.findOne({
+      where: {
+        gameId: game.id,
+      },
+      include: [{
+        model: orm.Player,
+        where: {
+          userId: game.pm,
+        },
+      }]
+    })
+    if (lastEnemy == null) {
       // Game finished
       game.update({
-        finished: true,
+        winner: 'players',
       });
     }
   } else {
     // Player character died
-    const lastPlayer = orm.Character.findOne({
+    const lastPlayer = await orm.Character.findOne({
+      where: {
+        gameId: game.id,
+      },
       include: [{
         model: orm.Player,
         where: {
@@ -147,7 +168,7 @@ async function killCharacter(orm, character) {
       // No players left
       // Game finished
       game.update({
-        finished: true,
+        winner: 'monsters',
       });
     }
   }

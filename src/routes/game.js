@@ -9,6 +9,7 @@ async function advanceTurn(orm, game) {
   // Find the next character in line
   let nextChar = await orm.Character.findOne({
     where: {
+      gameId: game.id,
       turn: {
         [Op.gt]: game.turn,
       },
@@ -21,6 +22,9 @@ async function advanceTurn(orm, game) {
     // No further turns (end of the round)
     // Start from the beggining
     nextChar = await orm.Character.findOne({
+      where: {
+        gameId: game.id,
+      },
       order: [
         ["turn", "ASC"],
       ],
@@ -89,6 +93,7 @@ router.post("game.create", "/", async (ctx) => {
     pm: lobby.hostId,
     level: 1,
     turn: -1,
+    winner: null,
   });
   await advanceTurn(ctx.orm, game);
   // Create players and their characters
