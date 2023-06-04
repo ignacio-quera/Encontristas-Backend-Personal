@@ -1,5 +1,7 @@
 const Router = require('koa-router');
 
+const itemData = require('../data/items.js')
+
 const router = new Router();
 
 router.post("characters.move", "/move", async (ctx) => {
@@ -14,6 +16,7 @@ router.post("characters.move", "/move", async (ctx) => {
         const gameId = character.gameId;
         console.log('character before', character)
         ctx.body = direction;
+        and
         let [x, y] = [character.x, character.y]
         switch (direction) {
             case "up":
@@ -36,7 +39,7 @@ router.post("characters.move", "/move", async (ctx) => {
             },
         })
         for (const character of characters) {
-            if ([character.x, character.y] == [x, y]) {
+            if (character.x === x && character.y === y) {
                 ctx.body = "Character in the way";
                 ctx.status = 401;
                 return;
@@ -47,6 +50,16 @@ router.post("characters.move", "/move", async (ctx) => {
                 gameId: gameId,
             },
         })
+        for (const item in items) {
+            if (item.x === x && item.y === 1) {
+                pickedItem = itemData[item.type];
+                character.update(
+                    {hp: character.hp + (pickedItem["hp"] || 0),
+                    dmg: character.dmg + (pickedItem["dmg"] || 0),
+                    movement: character.movement + (pickedItem["dmg"] || 0)}
+                )
+            }
+        }
         // updatear
         character.x, character.y = x, y;
         console.log('character after', character)
