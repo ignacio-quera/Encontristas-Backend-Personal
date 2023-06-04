@@ -14,4 +14,4 @@ const item_data = {
     }
 }
 
-module.exports = character_data;
+module.exports = item_data;
