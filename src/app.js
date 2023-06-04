@@ -10,6 +10,10 @@ const orm = require("./models");
 // const cors = require("@koa/cors");
 
 const swaggerDocument = swagger.loadDocumentSync("api.yaml");
+// if (!swagger.validateDocument(swaggerDocument)) {
+//   throw Error(`./api.yml does not conform to the Swagger 2.0 schema`);
+// }
+
 const app = new Koa();
 
 app.context.orm = orm;
@@ -20,12 +24,12 @@ app.use(koaBody());
 
 // Swagger
 app.use(koaSwagger({
-    routePrefix: '/docs',
-    swaggerOptions: {
-        swaggerDocument
-    },
+  routePrefix: "/docs",
+  swaggerOptions: {
+    spec: swaggerDocument,
+  },
 }));
-app.use(swaggerValidate(swaggerDocument));
+// app.use(swaggerValidate(swaggerDocument));
 
 // koa-router
 app.use(router.routes());

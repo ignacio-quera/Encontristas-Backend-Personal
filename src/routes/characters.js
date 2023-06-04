@@ -17,7 +17,7 @@ router.post("characters.create", "/", async (ctx) => {
   if (game == null) {
     ctx.status = 404;
     ctx.body = "Game not found";
-    return
+    return;
   }
   const pmUserId = game.pm;
   const pmPlayer = await ctx.orm.Player.findOne({
@@ -118,7 +118,7 @@ router.post("characters.move", "/move", async (ctx) => {
   character.update({ x, y });
   character.update({ movement: character.movement - 1 });
   ctx.body = [character.x, character.y];
-  ctx.status = 201;
+  ctx.status = 200;
 });
 
 async function killCharacter(orm, character) {
@@ -141,12 +141,12 @@ async function killCharacter(orm, character) {
         where: {
           userId: game.pm,
         },
-      }]
-    })
+      }],
+    });
     if (lastEnemy == null) {
       // Game finished
       game.update({
-        winner: 'players',
+        winner: "players",
       });
     }
   } else {
@@ -168,7 +168,7 @@ async function killCharacter(orm, character) {
       // No players left
       // Game finished
       game.update({
-        winner: 'monsters',
+        winner: "monsters",
       });
     }
   }
@@ -217,7 +217,7 @@ router.post("characters.action", "/action", async (ctx) => {
   ctx.status = 200;
   ctx.body = `Dealt ${character.dmg} points of damage, target now has ${target.hp}`;
   if (target.hp <= 0) {
-    ctx.body += ' (target killed)'
+    ctx.body += " (target killed)";
   }
 });
 

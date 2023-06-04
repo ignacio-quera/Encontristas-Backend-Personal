@@ -1,23 +1,56 @@
 # grupo-Los-Encontristas-backend
 
-Entidades
+## Entidades
 
-Usuario: username, email, password
+User: username, mail, password
 
-Jugador: usuario, juego
+Lobby: hostId, name
 
-Juego: name, pm, nivel, turno
+Participant: lobbyId, userId
 
-Personaje: tipo, juego, jugador, posicion(x,y), movimiento, turno, vida, daño
+Game: name, pm, level, turn, winner
 
-Objetos: tipo, posicion(x,y), juego
+Player: userId, gameId
 
-Lobby: host
+Character: type, gameId, playerId, x, y, movement, turn, hp, dmg
 
-Participante: lobby, usuario
+Item: type, x, y, gameId
 
-Relacion
+## Relaciones
 
+Lobby: hostId -> User:ID
+
+Participant: lobbyId -> Lobby:iD, userId -> User:iD
+
+Game: pm -> User:ID
+
+Player: userId -> User:iD, gameId -> Game:Id
+
+Character: gameId -> Game:Id
+
+Item: gameId -> Game:Id
+
+## Instrucciones para inicializar el proyecto
+
+Primero que nada, es necesario instalar `node`.
+Se recomienda usar `nvm`, y luego activarlo con:
+
+```bash
+nvm use node
+```
+
+También es necesario instalar `yarn`:
+
+```bash
+npm install --global yarn
+```
+
+Para inicializar el proyecto, hay que instalar las dependencias, crear el `.env` y inicializar la base de datos, lo que se hace con los siguientes comandos:
+
+```bash
+yarn install
+
+```
 
 yarn install para instalar las dependencias
 crear archivo .env
@@ -30,7 +63,7 @@ PORT: 3000
 
 crear db encontrista_db_development, encontrista_db_test, encontrista_db_production
 
-Crear usuarios
+
 
 
 ```bash

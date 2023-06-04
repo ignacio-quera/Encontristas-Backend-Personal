@@ -7,11 +7,11 @@ const items = require("./routes/items");
 
 const router = new Router();
 
-router.get('/health', (ctx, next) => {
-    ctx.body = {
-      "status": "UP"
-    };
-  });
+router.get("/health", (ctx) => {
+  ctx.body = {
+    status: "UP",
+  };
+});
 
 router.use("/characters", characters.routes());
 router.use("/users", users.routes());

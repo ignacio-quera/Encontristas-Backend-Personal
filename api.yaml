@@ -1,12 +1,12 @@
-swagger: "2.0"
+openapi: "3.0.0"
 info:
   title: "Swagger Example"
   description: >
     Pixels and Dungeons video game backend.
   version: "1.0.0"
-host: "localhost:3000"
-schemes:
-  - "http"
+servers:
+  - url: http://localhost:3000
+    description: Development local server.
 
 paths:
   /health:
@@ -21,23 +21,506 @@ paths:
         200:
           description: "Service is up and healthy"
           schema:
-            $ref: "#/definitions/Health"
+            type: "object"
+            properties:
+              status:
+                type: "string"
+                enum:
+                  - "UP"
+                  - "DOWN"
         500:
           $ref: '#/responses/500'
+  /users:
+    post:
+      summary: "Create a new user."
+      description: "Allows to create a new user in the database with a username, password and mail"
+      requestBody:
+        requeried: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                  username:
+                    type: string
+                  password:
+                    type: string
+                  mail:
+                    type: string
+      responses:
+        '201':
+          description: User created suceesfully.
+        '404':
+          description: Failed to create user.
+    get:
+      summary: "Show all users."
+      responses:
+        '200':      # Response
+          description: OK
+          content:  # Response body
+            application/json:   # One of media types
+              schema:
+                type: object
+                properties:
+                  username:
+                    type: string
+                  password:
+                    type: string
+                  mail:
+                    type: string
+  /users/{id}:
+    get:
+      summary: "Show an existing user."
+      description: "Given a user ID, displays the information of said user."
+      parameters:
+        - in: path
+          name: id   # Note the name is the same as in the path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: The user ID
+      responses:
+        '200':
+          description: User information found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: integer
+                  username: string
+                  mail: string
+                  password: string
+    put:
+      summary: "Edit an existing user."
+      description: "Given a user ID, change the user information."
+      requestBody:
+        requeried: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+                mail:
+                  type: string
+      responses:
+        '201':
+          description: User edited suceesfully.
+          content:  # Response body
+            application/json:   # One of media types
+              schema:
+                type: object
+                properties:
+                  username:
+                    type: string
+                  password:
+                    type: string
+                  mail:
+                    type: string
+        '404':
+          description: User not found.
+      
+  /items:
+    post:
+      summary: Create a new item.
+      description: Used by the PM to create a new item.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                gameId:
+                  type: integer
+                type:
+                  type: string
+                x: 
+                  type: integer
+                y: 
+                  type: integer
+      responses:
+        '201':
+          description: Item created succesfully
+        '404':
+          description: Game not found
+      
+    put:
+      summary: Edit an item.
+      description: Used by the PM to edit an item.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                gameId:
+                  type: integer
+                type:
+                  type: string
+                x: 
+                  type: integer
+                y: 
+                  type: integer
+      responses:
+        '201':
+          description: Item created succesfully
+          content:  # Response body
+            application/json:   # One of media types
+              schema:
+                type: object
+                properties:
+                  gameId:
+                    type: integer
+                  type:
+                    type: string
+                  x: 
+                    type: integer
+                  y: 
+                    type: integer
+        '404':
+          description: Item not found
+    delete:
+      summary: Delete an item.
+      descripition: Given an ID, delete the item.
+      parameters:
+        - in: query
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: Item ID
+      responses:
+        '201':
+          description: Item deleted succesfully
+        '404':
+          description: Item not found
 
+
+  /lobby/list:
+    get:
+      summary: Show all lobbies.
+      responses:
+        '200':      # Response
+          description: OK
+          content:  # Response body
+            application/json:   # One of media types
+              schema:
+                type: object
+                properties:
+                  hostId:
+                    type: integer
+                    description: ID of the user who is the host of this lobby.
+                  name:
+                    type: string
+  /lobby:
+    post:
+      summary: Create a new lobby.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: integer
+                name:
+                  type: string
+      responses:
+        '201':
+          description: Lobby created succesfully
+        '404':
+          description: Host User not found
+          
+    put:
+      summary: Update the information for a given lobby.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  description: ID of the lobby to modify.
+                hostId: integer
+                name: string
+      responses:
+        '200':
+          description: Lobby updated successfully.
+        '404':
+          description: Lobby not found.
+    get:
+      summary: Show a especific lobby
+      description: Give a lobby ID, show all the participants and the name of the lobby
+      parameteres:
+        - in: query
+          name: id
+          schema:
+            type: integer
+            description: The ID of the lobby to show
+      responses:
+        '200':
+          description: Lobby found.
+          content:
+            application/json:   # One of media types
+              schema:
+                type: object
+                properties:
+                  lobby:    
+                    type: object
+                    properties:
+                      hostId:
+                        type: integer
+                        description: ID of the user who is the host of this lobby.
+                      name:
+                        type: string
+                  participants:
+                    type: array
+                    description: A list of participants in this lobby.
+                    items:
+                      type: object
+                      properties:
+                        id: integer
+                        userId: integer
+                        lobbyId: integ
+        '404':
+          description: Lobby not found.
+    delete:
+      summary: Delete a lobby.
+      parameters:
+        - in: query
+          name: id
+          schema:
+            type: integer
+            description: The ID of the lobby to delete. 
+      responses:
+        '200':
+          description: Lobby deleted.
+        '404':
+          description: Lobby not found.
+            
+  /lobby/join:
+    post:
+      summary: Join a lobby.
+      requestBody: 
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: integer
+                  description: The ID of the user that wants to join the lobby.
+                lobbyId:
+                  type: integer
+                  description: The ID of the lobby to join.
+      responses:
+        '200':
+          description: User joined the lobby.
+        '400':
+          description: User already joined a lobby.
+        '404':
+          description: Lobby or user not found.
+              
+  
+  /characters:
+    post:
+      summary: Create a new character.
+      description: Used by the PM to create a new enemy.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                gameId:
+                  type: integer
+                type:
+                  type: string
+                  enum: [ranger, wizard, rogue, goblin]
+                x:
+                  type: integer
+                y:
+                  type: integer
+      responses:
+        '201':
+          description: Character created successfully.
+        '404':
+          description: Game not found.
+  /characters/move:
+    post:
+      summary: Move a character in a specific direction.
+      description: Used by the PM and players to move their characters on their turn.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                characterId:
+                  type: integer
+                direction:
+                  type: string
+                  enum: [left, right, up, down]
+      responses:
+        '200':
+          description: Character moved.
+        '401':
+          description: It's not your turn, no movement left in this turn or another character is in the way.
+  /characters/action:
+    post:
+      summary: Make an attack with the given character.
+      description: Used by the PM and players to attack on their turn.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                characterId:
+                  type: integer
+                targetId:
+                  type: integer
+      responses:
+        '200':
+          description: Dealt damage and the turn is over.
+        '401':
+          description: Target is not in the same game as character or it's not your turn.
+        '404':
+          description: Character or target not found.
+  
+  /game:
+    post:
+      summary: Start a new game.
+      description: Transform a lobby into a running game.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                lobbyId: integer
+      responses:
+        '201':
+          description: Game created (and lobby destroyed).
+        '404':
+          description: Lobby not found.
+    delete:
+      summary: Delete a game.
+      parameters:
+        - in: query
+          name: id
+          schema:
+            type: integer
+            description: The ID of the game to delete.
+      responses:
+        '200':
+          description: Game deleted.
+        '404':
+          description: Game not found.
+    get:
+      summary: Get all game state.
+      description: Get the board, items, characters, global state, etc, for a given game.
+      parameters:
+        - in: query
+          name: id
+          schema:
+            type: integer
+            description: The ID of the game to look up information about.
+      responses:
+        '200':
+          description: Game information fetched.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  game:
+                    type: object
+                    properties:
+                      id: integer
+                      name: string
+                      pm:
+                        type: integer
+                        description: User ID of the Pixel Master player (User ID, not Player ID).
+                      level:
+                        type: integer
+                        description: The current level. Increments by one for each monster kill.
+                      turn:
+                        type: integer
+                        description: The current turn number.
+                      winner:
+                        type: string
+                        enum: [players, monsters]
+                        nullable: true
+                        description: Who has won the game. (Or `null` if no one yet).
+                      createdAt: string
+                      updatedAt: string
+                  players:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: integer
+                        userId: integer
+                        gameId: integer
+                      description: A single player (ie. a user within a game).
+                  characters:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: integer
+                        gameId: integer
+                        playerId:
+                          type: integer
+                          description: The player controlling this character (possibly the Pixel Master).
+                        type:
+                          type: string
+                          enum: [rogue, ranger, wizard, goblin]
+                        x: integer
+                        y: integer
+                        movement:
+                          type: integer
+                          description: The movement left in this turn (meaningless if it's not the turn of this character).
+                        turn: integer
+                        hp: integer
+                        dmg: integer
+                      description: >
+                        A single character on the board.
+                        Usually each player has 1 character, but sometimes players have zero characters if they die.
+                        The Pixel Master player can have zero or many characters (ie. enemies).
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: integer
+                        gameId: integer
+                        type:
+                          type: string
+                          enum: [health_potion, magic_weapon, cursed_weapon, speed_boots]
+                        x: integer
+                        y: integer
+                      description: A single item in the board.
+        '404':
+          description: Game not found.
 responses:
   500:
     description: Internal Server Error
     schema:
       $ref: '#/definitions/Error'
-
-definitions:
-  Health:
-    type: "object"
-    properties:
-      status:
-        type: "string"
-        enum:
-          - "UP"
-          - "DOWN"
-
