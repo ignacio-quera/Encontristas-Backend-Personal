@@ -21,7 +21,7 @@ module.exports = (sequelize, DataTypes) => {
     pm: DataTypes.INTEGER,
     level: DataTypes.INTEGER,
     turn: DataTypes.INTEGER,
-    finished: DataTypes.BOOLEAN,
+    winner: DataTypes.STRING,
   }, {
     sequelize,
     modelName: "Game",

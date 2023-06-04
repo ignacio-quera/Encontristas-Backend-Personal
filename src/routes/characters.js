@@ -13,117 +13,112 @@ router.post("characters.create", "/", async (ctx) => {
   const {
     gameId, type, x, y,
   } = ctx.request.body;
-  try {
-    const game = await ctx.orm.Game.findByPk(gameId);
-    const pmUserId = game.pm;
-    const pmPlayer = await ctx.orm.Player.findOne({
-      where: { userId: pmUserId, gameId },
-    });
-    const lastTurn = await ctx.orm.Character.findOne({
-      where: {
-        gameId,
-      },
-      order: [
-        ["turn", "DESC"],
-      ],
-    });
-    const character = await ctx.orm.Character.create({
-      gameId,
-      playerId: pmPlayer.id,
-      type,
-      x,
-      y,
-      movement: characterData[type].movement,
-      turn: lastTurn == null ? 0 : lastTurn.turn + 1,
-      hp: characterData[type].hp,
-      dmg: characterData[type].dmg,
-    });
-    ctx.body = character;
-    ctx.status = 201;
-  } catch (error) {
-    console.error(error);
-    ctx.body = error;
-    ctx.status = 400;
+  const game = await ctx.orm.Game.findByPk(gameId);
+  if (game == null) {
+    ctx.status = 404;
+    ctx.body = "Game not found";
+    return
   }
+  const pmUserId = game.pm;
+  const pmPlayer = await ctx.orm.Player.findOne({
+    where: { userId: pmUserId, gameId },
+  });
+  const lastTurn = await ctx.orm.Character.findOne({
+    where: {
+      gameId,
+    },
+    order: [
+      ["turn", "DESC"],
+    ],
+  });
+  const character = await ctx.orm.Character.create({
+    gameId,
+    playerId: pmPlayer.id,
+    type,
+    x,
+    y,
+    movement: characterData[type].movement,
+    turn: lastTurn == null ? 0 : lastTurn.turn + 1,
+    hp: characterData[type].hp,
+    dmg: characterData[type].dmg,
+  });
+  ctx.body = character;
+  ctx.status = 201;
 });
 
 router.post("characters.move", "/move", async (ctx) => {
   const { characterId, direction } = ctx.request.body;
-  try {
-    const character = await ctx.orm.Character.findByPk(characterId);
-    if (character.movement <= 0) {
-      ctx.body = "No movement left";
-      ctx.status = 401;
-      return;
-    }
-    const { gameId } = character;
-    const game = await ctx.orm.Game.findByPk(gameId);
-    if (character.turn !== game.turn) {
-      ctx.body = "It's not your turn";
-      ctx.status = 401;
-      return;
-    }
-    ctx.body = direction;
-    let [x, y] = [character.x, character.y];
-    switch (direction) {
-      case "up":
-        y -= 1;
-        break;
-      case "down":
-        y += 1;
-        break;
-      case "left":
-        x -= 1;
-        break;
-      case "right":
-        x += 1;
-        break;
-      default:
-        break;
-    }
-    // checkear
-    const characters = await ctx.orm.Character.findAll({
-      where: {
-        gameId,
-      },
-    });
-    for (let k = 0; k < characters.length; k += 1) {
-      const char = characters[k];
-      if (char.x === x && char.y === y) {
-        ctx.body = "Character in the way";
-        ctx.status = 401;
-        return;
-      }
-    }
-    const items = await ctx.orm.Item.findAll({
-      where: {
-        gameId,
-      },
-    });
-    for (let k = 0; k < items.length; k += 1) {
-      const item = items[k];
-      if (item.x === x && item.y === 1) {
-        const pickedItem = itemData[item.type];
-        character.update(
-          {
-            hp: character.hp + (pickedItem.hp || 0),
-            dmg: character.dmg + (pickedItem.dmg || 0),
-            movement: character.movement + (pickedItem.dmg || 0),
-          },
-        );
-      }
-    }
-    character.x = x;
-    character.y = y;
-    character.update({ x, y });
-    character.update({ movement: character.movement - 1 });
-    ctx.body = [character.x, character.y];
-    ctx.status = 201;
-  } catch (error) {
-    console.error(error);
-    ctx.body = error;
-    ctx.status = 400;
+  const character = await ctx.orm.Character.findByPk(characterId);
+  if (character.movement <= 0) {
+    ctx.body = "No movement left";
+    ctx.status = 401;
+    return;
   }
+  const { gameId } = character;
+  const game = await ctx.orm.Game.findByPk(gameId);
+  if (character.turn !== game.turn) {
+    ctx.body = "It's not your turn";
+    ctx.status = 401;
+    return;
+  }
+  ctx.body = direction;
+  let [x, y] = [character.x, character.y];
+  switch (direction) {
+    case "up":
+      y -= 1;
+      break;
+    case "down":
+      y += 1;
+      break;
+    case "left":
+      x -= 1;
+      break;
+    case "right":
+      x += 1;
+      break;
+    default:
+      ctx.status = 400;
+      ctx.body = "Invalid direction";
+      return;
+  }
+  // checkear
+  const characters = await ctx.orm.Character.findAll({
+    where: {
+      gameId,
+    },
+  });
+  for (let k = 0; k < characters.length; k += 1) {
+    const char = characters[k];
+    if (char.x === x && char.y === y) {
+      ctx.body = "Character in the way";
+      ctx.status = 401;
+      return;
+    }
+  }
+  const items = await ctx.orm.Item.findAll({
+    where: {
+      gameId,
+    },
+  });
+  for (let k = 0; k < items.length; k += 1) {
+    const item = items[k];
+    if (item.x === x && item.y === 1) {
+      const pickedItem = itemData[item.type];
+      character.update(
+        {
+          hp: character.hp + (pickedItem.hp || 0),
+          dmg: character.dmg + (pickedItem.dmg || 0),
+          movement: character.movement + (pickedItem.dmg || 0),
+        },
+      );
+    }
+  }
+  character.x = x;
+  character.y = y;
+  character.update({ x, y });
+  character.update({ movement: character.movement - 1 });
+  ctx.body = [character.x, character.y];
+  ctx.status = 201;
 });
 
 async function killCharacter(orm, character) {
@@ -137,15 +132,29 @@ async function killCharacter(orm, character) {
     await game.update({
       level: game.level + 1,
     });
-    if (game.level >= 3) {
+    const lastEnemy = await orm.Character.findOne({
+      where: {
+        gameId: game.id,
+      },
+      include: [{
+        model: orm.Player,
+        where: {
+          userId: game.pm,
+        },
+      }]
+    })
+    if (lastEnemy == null) {
       // Game finished
       game.update({
-        finished: true,
+        winner: 'players',
       });
     }
   } else {
     // Player character died
-    const lastPlayer = orm.Character.findOne({
+    const lastPlayer = await orm.Character.findOne({
+      where: {
+        gameId: game.id,
+      },
       include: [{
         model: orm.Player,
         where: {
@@ -159,7 +168,7 @@ async function killCharacter(orm, character) {
       // No players left
       // Game finished
       game.update({
-        finished: true,
+        winner: 'monsters',
       });
     }
   }
@@ -207,6 +216,9 @@ router.post("characters.action", "/action", async (ctx) => {
 
   ctx.status = 200;
   ctx.body = `Dealt ${character.dmg} points of damage, target now has ${target.hp}`;
+  if (target.hp <= 0) {
+    ctx.body += ' (target killed)'
+  }
 });
 
 module.exports = router;
