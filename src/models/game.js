@@ -20,7 +20,8 @@ module.exports = (sequelize, DataTypes) => {
     name: DataTypes.STRING,
     pm: DataTypes.INTEGER,
     level: DataTypes.INTEGER,
-    turn: DataTypes.INTEGER
+    turn: DataTypes.INTEGER,
+    finished: DataTypes.BOOLEAN,
   }, {
     sequelize,
     modelName: 'Game',

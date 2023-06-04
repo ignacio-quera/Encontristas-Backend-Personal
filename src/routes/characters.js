@@ -9,35 +9,35 @@ const characterData = require('../data/characters.js')
 const router = new Router();
 
 router.post("characters.create", "/", async (ctx) => {
-    const {gameId, type, x, y} = ctx.request.body;
+    const { gameId, type, x, y } = ctx.request.body;
     try {
         const game = await ctx.orm.Game.findByPk(gameId);
         const pmUserId = game.pm
-        const pmPlayerId = ctx.orm.Player.findOne({
-            where: {userId: pmUserId, gameId: gameId}
+        const pmPlayer = await ctx.orm.Player.findOne({
+            where: { userId: pmUserId, gameId: game.id }
         })
-        lastTurn = await ctx.orm.Character.findOne({
+        const lastTurn = await ctx.orm.Character.findOne({
             where: {
-                gameId: gameId,
+                gameId: game.id,
             },
             order: [
                 ['turn', 'DESC'],
             ]
         })
         const character = await ctx.orm.Character.create({
-            gameId: gameId,
-            playerId: pmPlayerId,
+            gameId: game.id,
+            playerId: pmPlayer.id,
             type: type,
             x: x,
             y: y,
             movement: characterData[type]["movement"],
-            turn: lastTurn == null? 0 : lastTurn.turn + 1,
+            turn: lastTurn == null ? 0 : lastTurn.turn + 1,
             hp: characterData[type]["hp"],
             dmg: characterData[type]["dmg"],
         })
         ctx.body = character;
         ctx.status = 201;
-    } catch(error) {
+    } catch (error) {
         console.error(error)
         ctx.body = error;
         ctx.status = 400;
@@ -54,9 +54,14 @@ router.post("characters.move", "/move", async (ctx) => {
             return;
         }
         const gameId = character.gameId;
+        const game = await ctx.orm.Game.findByPk(gameId)
+        if (character.turn !== game.turn) {
+            ctx.body = "It's not your turn"
+            ctx.status = 401
+            return
+        }
         console.log('character before', character)
         ctx.body = direction;
-        and
         let [x, y] = [character.x, character.y]
         switch (direction) {
             case "up":
@@ -129,15 +134,6 @@ async function killCharacter(orm, character) {
         })
         if (game.level >= 3) {
             // Game finished
-            // Kill all enemies
-            await orm.Character.destroy({
-                include: [{
-                    model: orm.Player,
-                    where: {
-                        userId: game.pm,
-                    },
-                }],
-            })
             game.update({
                 finished: true,
             })
