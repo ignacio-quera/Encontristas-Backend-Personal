@@ -1,7 +1,7 @@
-'use strict';
 const {
-  Model
-} = require('sequelize');
+  Model,
+} = require("sequelize");
+
 module.exports = (sequelize, DataTypes) => {
   class User extends Model {
     /**
@@ -18,34 +18,34 @@ module.exports = (sequelize, DataTypes) => {
   }
   User.init({
     username: {
-      type:DataTypes.STRING,
+      type: DataTypes.STRING,
       validate: {
         isAlphanumeric: {
-          msg: "Username must be alphanumeric"
-        }
+          msg: "Username must be alphanumeric",
+        },
       },
     },
     password: {
-      type:DataTypes.STRING,
+      type: DataTypes.STRING,
       validate: {
         isValidPassword(value) {
           if (value.length < 8) {
-            throw new Error('The password must be at least 8 characters long')
+            throw new Error("The password must be at least 8 characters long");
           }
-        }
+        },
       },
     },
     mail: {
-      type:DataTypes.STRING,
+      type: DataTypes.STRING,
       validate: {
         isEmail: {
-          msg: "mail must have mail format"
-        }
+          msg: "mail must have mail format",
+        },
       },
     },
   }, {
     sequelize,
-    modelName: 'User',
+    modelName: "User",
   });
   return User;
 };

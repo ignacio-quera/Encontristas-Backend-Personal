@@ -1,7 +1,7 @@
-'use strict';
 const {
-  Model
-} = require('sequelize');
+  Model,
+} = require("sequelize");
+
 module.exports = (sequelize, DataTypes) => {
   class Game extends Model {
     /**
@@ -12,8 +12,8 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // define association here
       this.belongsTo(models.User, {
-        foreignKey: 'pm',
-      })
+        foreignKey: "pm",
+      });
     }
   }
   Game.init({
@@ -24,7 +24,7 @@ module.exports = (sequelize, DataTypes) => {
     finished: DataTypes.BOOLEAN,
   }, {
     sequelize,
-    modelName: 'Game',
+    modelName: "Game",
   });
   return Game;
 };
