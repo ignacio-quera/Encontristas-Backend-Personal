@@ -117,13 +117,13 @@ router.post("characters.action", "/action", async (ctx) => {
     const { characterId, targetId } = ctx.request.body
     const character = await ctx.orm.Character.findByPk(characterId)
     const target = await ctx.orm.Character.findByPk(targetId)
-    const game = await ctx.orm.Game.findByPk(character.gameId)
     // Do checks
     if (character == null) {
         ctx.status = 404
         ctx.body = "Character not found"
         return
     }
+    const game = await ctx.orm.Game.findByPk(character.gameId)
     if (target == null) {
         ctx.status = 404
         ctx.body = "Target not found"
@@ -142,7 +142,7 @@ router.post("characters.action", "/action", async (ctx) => {
     // Make attack
     await damageCharacter(ctx.orm, character, target, character.dmg)
     // Advance turn
-    await advanceTurn(game)
+    await advanceTurn(ctx.orm, game)
 
     ctx.status = 200
     ctx.body = `Dealt ${character.dmg} points of damage, target now has ${target.hp}`

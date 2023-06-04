@@ -1,11 +1,12 @@
 const Router = require('koa-router');
 const characterData = require('../data/characters.js')
+const { Op } = require('sequelize')
 
 const router = new Router();
 
-async function advanceTurn(game) {
+async function advanceTurn(orm, game) {
     // Find the next character in line
-    let nextChar = await ctx.orm.Character.findOne({
+    let nextChar = await orm.Character.findOne({
         where: {
             turn: {
                 [Op.gt]: game.turn,
@@ -18,7 +19,7 @@ async function advanceTurn(game) {
     if (nextChar == null) {
         // No further turns (end of the round)
         // Start from the beggining
-        nextChar = await ctx.orm.Character.findOne({
+        nextChar = await orm.Character.findOne({
             order: [
                 ['turn', 'ASC'],
             ],
@@ -80,11 +81,6 @@ router.post("game.create", "/", async (ctx) => {
                 lobbyId: lobby.id,
             },
         })
-        // Destroy lobby
-        for (const participant of participants) await participant.destroy()
-        await lobby.destroy()
-        console.log(lobby)
-        console.log(participants)
         // Create game instance
         const game = await ctx.orm.Game.create({
             "name": lobby.name,
@@ -92,7 +88,7 @@ router.post("game.create", "/", async (ctx) => {
             "level": 1,
             "turn": -1,
         })
-        await advanceTurn(game)
+        await advanceTurn(ctx.orm, game)
         // Create players and their characters
         let i = 0
         for (const participant of participants) {
@@ -113,6 +109,9 @@ router.post("game.create", "/", async (ctx) => {
             })
             i += 1
         }
+        // Destroy lobby
+        for (const participant of participants) await participant.destroy()
+        await lobby.destroy()
 
         ctx.body = game
         ctx.status = 201

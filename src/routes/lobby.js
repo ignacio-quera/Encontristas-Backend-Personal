@@ -80,7 +80,7 @@ router.post("lobby.join", "/join", async (ctx) => {
             return
         }
         if (await ctx.orm.Participant.findOne({ where: { lobbyId, userId } }) != null) {
-            ctx.status = 204
+            ctx.status = 400
             ctx.body = "Already joined"
             return
         }
