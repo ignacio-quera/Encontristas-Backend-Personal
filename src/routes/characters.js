@@ -57,11 +57,11 @@ router.post("characters.move", "/move", async (ctx) => {
       return;
     }
     const { gameId } = character;
-    const game = await ctx.orm.Game.findByPk(gameId)
+    const game = await ctx.orm.Game.findByPk(gameId);
     if (character.turn !== game.turn) {
-      ctx.body = "It's not your turn"
-      ctx.status = 401
-      return
+      ctx.body = "It's not your turn";
+      ctx.status = 401;
+      return;
     }
     ctx.body = direction;
     let [x, y] = [character.x, character.y];

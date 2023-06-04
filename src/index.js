@@ -1,7 +1,7 @@
 /* eslint-disable no-alert, no-console */
 const dotenv = require("dotenv");
 const app = require("./app");
-const db = require("./models").default;
+const db = require("./models");
 
 dotenv.config();
 
