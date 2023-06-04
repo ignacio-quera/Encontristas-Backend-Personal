@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 const Router = require("koa-router");
+const { Op } = require("sequelize");
 const { advanceTurn } = require("./game");
 
 const itemData = require("../data/items");
@@ -142,27 +143,28 @@ async function killCharacter(orm, character) {
           },
         }],
       });
-            game.update({
-                finished: true,
-            })
-        }
-    } else {
-        // Player character died
-        if (orm.Character.findOne({
-            include: [{
-                model: orm.Player,
-                where: {
-                    userId: {
-                        [Op.ne]: game.pm,
-                    },
-                },
-            }],
-        }) == null) {
-            // No players left
-            // Game finished
-            game.update({
-                finished: true,
-            })
+      game.update({
+        finished: true,
+      });
+    }
+  } else {
+    // Player character died
+    const lastPlayer = orm.Character.findOne({
+      include: [{
+        model: orm.Player,
+        where: {
+          userId: {
+            [Op.ne]: game.pm,
+          },
+        },
+      }],
+    });
+    if (lastPlayer == null) {
+      // No players left
+      // Game finished
+      game.update({
+        finished: true,
+      });
     }
   }
 }

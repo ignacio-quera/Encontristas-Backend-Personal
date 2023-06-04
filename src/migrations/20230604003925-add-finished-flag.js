@@ -1,5 +1,3 @@
-'use strict';
-
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
@@ -9,16 +7,16 @@ module.exports = {
      * Example:
      * await queryInterface.createTable('users', { id: Sequelize.INTEGER });
      */
-    queryInterface.addColumn('Games', 'finished', Sequelize.BOOLEAN)
+    queryInterface.addColumn("Games", "finished", Sequelize.BOOLEAN);
   },
 
-  async down(queryInterface, Sequelize) {
+  async down(queryInterface) {
     /**
      * Add reverting commands here.
     *
     * Example:
     * await queryInterface.dropTable('users');
     */
-    queryInterface.removeColumn('Games', 'finished')
-  }
+    queryInterface.removeColumn("Games", "finished");
+  },
 };
