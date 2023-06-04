@@ -1,7 +1,7 @@
-'use strict';
 const {
-  Model
-} = require('sequelize');
+  Model,
+} = require("sequelize");
+
 module.exports = (sequelize, DataTypes) => {
   class Lobby extends Model {
     /**
@@ -12,16 +12,16 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // define association here
       this.belongsTo(models.User, {
-        foreignKey: 'hostId',
-      })
+        foreignKey: "hostId",
+      });
     }
   }
   Lobby.init({
     hostId: DataTypes.INTEGER,
-    name: DataTypes.STRING
+    name: DataTypes.STRING,
   }, {
     sequelize,
-    modelName: 'Lobby',
+    modelName: "Lobby",
   });
   return Lobby;
 };

@@ -1,8 +1,6 @@
-'use strict';
-
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
-  async up(queryInterface, Sequelize) {
+  async up(queryInterface) {
     /**
      * Add altering commands here.
      *
@@ -10,8 +8,8 @@ module.exports = {
      * await queryInterface.createTable('users', { id: Sequelize.INTEGER });
      */
     await queryInterface.removeColumn(
-      'Games',
-      'date'
+      "Games",
+      "date",
     );
   },
 
@@ -23,9 +21,9 @@ module.exports = {
      * await queryInterface.dropTable('users');
     */
     await queryInterface.addColumn(
-      'Games',
-      'date',
-      Sequelize.DATE
+      "Games",
+      "date",
+      Sequelize.DATE,
     );
-  }
+  },
 };
