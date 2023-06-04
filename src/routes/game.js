@@ -43,6 +43,7 @@ router.get("game.show", "/", async (ctx) => {
   const game = await ctx.orm.Game.findByPk(id);
   if (game == null) {
     ctx.status = 404;
+    ctx.body = "Game not found";
     return;
   }
   const players = await ctx.orm.Player.findAll({
@@ -134,6 +135,7 @@ router.delete("game.delete", "/", async (ctx) => {
   const game = await ctx.orm.Game.findByPk(id);
   if (game == null) {
     ctx.status = 404;
+    ctx.body = "Game not found";
     return;
   }
   await ctx.orm.Character.destroy({
@@ -152,7 +154,7 @@ router.delete("game.delete", "/", async (ctx) => {
     },
   });
   await game.destroy();
-  ctx.body = game;
+  ctx.body = "Game destroyed";
   ctx.status = 200;
 });
 

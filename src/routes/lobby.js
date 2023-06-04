@@ -100,7 +100,7 @@ router.delete("lobby.delete", "/", async (ctx) => {
     },
   });
   await lobby.destroy();
-  ctx.body = lobby;
+  ctx.body = "Lobby destroyed";
   ctx.status = 200;
 });
 

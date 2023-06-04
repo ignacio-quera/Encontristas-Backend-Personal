@@ -46,7 +46,7 @@ router.delete("item.delete", "/", async (ctx) => {
     return;
   }
   await item.destroy();
-  ctx.body = item;
+  ctx.body = "Item destroyed";
   ctx.status = 200;
 });
 

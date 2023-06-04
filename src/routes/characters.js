@@ -195,6 +195,9 @@ router.post("characters.action", "/action", async (ctx) => {
 
   ctx.status = 200;
   ctx.body = `Dealt ${character.dmg} points of damage, target now has ${target.hp}`;
+  if (target.hp <= 0) {
+    ctx.body += ' (target killed)'
+  }
 });
 
 module.exports = router;
