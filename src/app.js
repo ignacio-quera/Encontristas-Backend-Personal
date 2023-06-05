@@ -1,6 +1,6 @@
 const Koa = require("koa");
 const swagger = require("swagger2");
-const { validate: swaggerValidate } = require("swagger2-koa");
+// const { validate: swaggerValidate } = require("swagger2-koa");
 const { koaSwagger } = require("koa2-swagger-ui");
 const { koaBody } = require("koa-body");
 const koaLogger = require("koa-logger");
