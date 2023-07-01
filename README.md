@@ -37,15 +37,17 @@ Se recomienda usar `nvm`, y luego activar `node` con:
 
 ```bash
 nvm use node
+```
 
 También es necesario instalar yarn:
 
-bash
+```bash
 npm install --global yarn
+```
 
 Para inicializar el proyecto, hay que instalar las dependencias, crear el .env y inicializar la base de datos, lo que se hace con los siguientes comandos:
 
-bash
+```bash
 cp .env.example .env
 yarn install
 sudo -u postgres createuser --superuser encontrista_user
@@ -54,11 +56,13 @@ sudo -u postgres createdb encontrista_db_development
 sudo -u postgres createdb encontrista_db_test
 sudo -u postgres createdb encontrista_db_production
 yarn sequelize-cli db:migrate
+```
 
 Luego, para correr el proyecto basta con inicializar el servidor de prueba con el siguiente comando:
 
-bash
+```bash
 yarn dev
+```
 
 Esto inicializa un servidor local de prueba (por defecto en el puerto 3000).
 Se puede probar con Postman conectándose al host localhost:3000.
@@ -90,4 +94,3 @@ El PM también tiene que jugar cuando le toca a sus enemigos.
 
 Cuando se maten a todos los enemigos o todos los aliados, el juego terminará, y se marcará la variable winner.
 El estado del juego se puede ver en cualquier momento con un request GET a /game.
-```
