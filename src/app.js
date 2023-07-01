@@ -32,6 +32,6 @@ app.use(koaSwagger({
 // app.use(swaggerValidate(swaggerDocument));
 
 // koa-router
-app.use(router.routes());
+app.use(router.routes()).use(router.allowedMethods());
 
 module.exports = app;

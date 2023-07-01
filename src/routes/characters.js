@@ -102,7 +102,7 @@ router.post("characters.move", "/move", async (ctx) => {
   });
   for (let k = 0; k < items.length; k += 1) {
     const item = items[k];
-    if (item.x === x && item.y === 1) {
+    if (item.x === x && item.y === y) {
       const pickedItem = itemData[item.type];
       character.update(
         {
@@ -111,7 +111,7 @@ router.post("characters.move", "/move", async (ctx) => {
           movement: character.movement + (pickedItem.dmg || 0),
         },
       );
-    }
+    } 
   }
   character.x = x;
   character.y = y;
@@ -196,7 +196,7 @@ router.post("characters.action", "/action", async (ctx) => {
   const game = await ctx.orm.Game.findByPk(character.gameId);
   if (target == null) {
     ctx.status = 404;
-    ctx.body = "Target not found";
+    ctx.body = "Missed";
     return;
   }
   if (target.gameId !== game.id) {
