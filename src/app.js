@@ -1,6 +1,6 @@
 const Koa = require("koa");
 const swagger = require("swagger2");
-// const { validate: swaggerValidate } = require("swagger2-koa");
+const { validate: swaggerValidate } = require("swagger2-koa");
 const { koaSwagger } = require("koa2-swagger-ui");
 const { koaBody } = require("koa-body");
 const koaLogger = require("koa-logger");
@@ -11,7 +11,7 @@ const orm = require("./models");
 
 const swaggerDocument = swagger.loadDocumentSync("api.yaml");
 // if (!swagger.validateDocument(swaggerDocument)) {
-//   throw Error(`./api.yml does not conform to the Swagger 2.0 schema`);
+//   throw Error(`./api.yml does not conform to the OpenAPI schema`);
 // }
 
 const app = new Koa();
