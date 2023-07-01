@@ -1,11 +1,18 @@
 /* eslint-disable no-alert, no-console */
 const Router = require("koa-router");
+const bcrypt = require("bcrypt");
+const saltRounds = 10;  
 
 const router = new Router();
 
 router.post("users.create", "/", async (ctx) => {
-  ctx.body = ctx.request.body;
-  const user = await ctx.orm.User.create(ctx.request.body);
+  const {
+    username, password, mail
+  } = ctx.request.body;
+  bcrypt.hash(password, saltRounds, function(err, hash) {
+    console.log(hash);
+    const user = ctx.orm.User.create({username: username, password: hash, mail: mail});
+});
   ctx.body = user;
   ctx.status = 201;
 });
