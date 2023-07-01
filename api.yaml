@@ -226,11 +226,14 @@ paths:
                 items:
                   type: object
                   properties:
+                    name:
+                      type: string
                     hostId:
                       type: integer
                       description: ID of the user who is the host of this lobby.
-                    name:
+                    hostName:
                       type: string
+                      description: Name of the host user.
   /lobby:
     post:
       summary: Create a new lobby.
@@ -307,8 +310,8 @@ paths:
                           type: integer
                         userId:
                           type: integer
-                        lobbyId:
-                          type: integer
+                        username:
+                          type: string
         '404':
           description: Lobby not found.
     delete:

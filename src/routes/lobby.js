@@ -23,14 +23,19 @@ router.get("lobby.show", "/", async (ctx) => {
     ctx.body = "Lobby not found";
     return;
   }
-  const participants = await ctx.orm.Participant.findAll({
+  const rawParticipants = await ctx.orm.Participant.findAll({
     where: {
       lobbyId: lobby.id,
     },
+    include: ctx.orm.User,
   });
   ctx.body = {
     lobby,
-    participants,
+    participants: rawParticipants.map(part => ({
+      id: part.id,
+      userId: part.userId,
+      username: part.User.username,
+    })),
   };
   ctx.status = 200;
 });
