@@ -4,7 +4,13 @@ const Router = require("koa-router");
 const router = new Router();
 
 router.get("lobby.list", "/list", async (ctx) => {
-  const lobbies = await ctx.orm.Lobby.findAll();
+  const rawLobbies = await ctx.orm.Lobby.findAll({ include: ctx.orm.User });
+  const lobbies = rawLobbies.map(lobby => ({
+    id: lobby.id,
+    name: lobby.name,
+    hostId: lobby.hostId,
+    hostName: lobby.User.username,
+  }));
   ctx.body = lobbies;
   ctx.status = 200;
 });

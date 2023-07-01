@@ -222,13 +222,15 @@ paths:
           content:  # Response body
             application/json:   # One of media types
               schema:
-                type: object
-                properties:
-                  hostId:
-                    type: integer
-                    description: ID of the user who is the host of this lobby.
-                  name:
-                    type: string
+                type: array
+                items:
+                  type: object
+                  properties:
+                    hostId:
+                      type: integer
+                      description: ID of the user who is the host of this lobby.
+                    name:
+                      type: string
   /lobby:
     post:
       summary: Create a new lobby.
