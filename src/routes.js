@@ -19,7 +19,6 @@ router.get("/health", (ctx) => {
 router.use(authRoutes.routes());
 
 // router.use(jwtMiddleware( { secret: process.env.JWT_SECRET } ))
-router.use(jwtMiddleware( { secret: process.env.JWT_SECRET } ))
 router.use("/characters", characters.routes());
 router.use("/users", users.routes());
 router.use("/lobby", lobby.routes());

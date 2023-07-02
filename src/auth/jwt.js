@@ -18,19 +18,6 @@ async function GetUserID(ctx, next) {
     return await next();
 };
 
-async function GetCharacterID(ctx, next) {
-    const { characterId, direction } = ctx.request.body;
-    const character = await ctx.orm.Character.findByPk(characterId);
-    const player = await ctx.orm.Player.findByPk(character.playerId)
-    const user = await ctx.orm.User.findByPk(player.userId)
-    
-    
-    var token = ctx.request.header.authorization.split(' ')[1];
-    var scope = getJWTScope(token);
-    ctx.assert(scope.includes('user'), 403, "You're not a user");
-    return await next();
-}
-
 module.exports = {
-    GetUserID, GetCharacterID
+    GetUserID
 };

@@ -1,15 +1,22 @@
 const Router = require("koa-router");
+const authUtils = require('../auth/jwt')
 
 const router = new Router();
 
-router.post("item.create", "/", async (ctx) => {
+router.post("item.create", "/", authUtils.GetUserID ,async (ctx) => {
   const {
     gameId, type, x, y,
   } = ctx.request.body;
-  const game = ctx.orm.Game.findByPk(gameId);
+  const userId = ctx.params.id;
+  const game = await ctx.orm.Game.findByPk(gameId);
   if (game == null) {
     ctx.status = 404;
     ctx.body = "Game not found";
+    return;
+  }
+  if (game.pm != userId){
+    ctx.status = 401;
+    ctx.body = "Players can't create items";
     return;
   }
   const item = await ctx.orm.Item.create({

@@ -2,6 +2,7 @@
 const Router = require("koa-router");
 const { Op } = require("sequelize");
 const { advanceTurn } = require("./game");
+const authUtils = require('../auth/jwt')
 
 const itemData = require("../data/items");
 
@@ -9,14 +10,20 @@ const characterData = require("../data/characters");
 
 const router = new Router();
 
-router.post("characters.create", "/", async (ctx) => {
+router.post("characters.create", "/", authUtils.GetUserID,async (ctx) => {
   const {
     gameId, type, x, y,
   } = ctx.request.body;
+  const userId = ctx.params.id;
   const game = await ctx.orm.Game.findByPk(gameId);
   if (game == null) {
     ctx.status = 404;
     ctx.body = "Game not found";
+    return;
+  }
+  if (game.pm != userId){
+    ctx.status = 401;
+    ctx.body = "Players can't create characters";
     return;
   }
   const pmUserId = game.pm;
@@ -46,9 +53,18 @@ router.post("characters.create", "/", async (ctx) => {
   ctx.status = 201;
 });
 
-router.post("characters.move", "/move", async (ctx) => {
+router.post("characters.move", "/move", authUtils.GetUserID, async (ctx) => {
   const { characterId, direction } = ctx.request.body;
+  const userId = ctx.params.id;
+
   const character = await ctx.orm.Character.findByPk(characterId);
+  const player = await ctx.orm.Player.findByPk(character.playerId);
+  const userOfCharacter = await ctx.orm.User.findByPk(player.userId);
+  if (userId != userOfCharacter.id) {
+    ctx.body = "You cant move a character that isn't your own";
+    ctx.status = 401;
+    return;
+  }
   if (character.movement <= 0) {
     ctx.body = "No movement left";
     ctx.status = 401;
@@ -183,10 +199,19 @@ async function damageCharacter(orm, attacker, target, dmg) {
   }
 }
 
-router.post("characters.action", "/action", async (ctx) => {
+router.post("characters.action", "/action", authUtils.GetUserID,async (ctx) => {
   const { characterId, targetId } = ctx.request.body;
   const character = await ctx.orm.Character.findByPk(characterId);
   const target = await ctx.orm.Character.findByPk(targetId);
+  const userId = ctx.params.id;
+
+  const player = await ctx.orm.Player.findByPk(character.playerId);
+  const userOfCharacter = await ctx.orm.User.findByPk(player.userId);
+  if (userId != userOfCharacter.id) {
+    ctx.body = "You can't attack with a character that isn't your own";
+    ctx.status = 401;
+    return;
+  }
   // Do checks
   if (character == null) {
     ctx.status = 404;
@@ -196,7 +221,7 @@ router.post("characters.action", "/action", async (ctx) => {
   const game = await ctx.orm.Game.findByPk(character.gameId);
   if (target == null) {
     ctx.status = 404;
-    ctx.body = "Missed";
+    ctx.body = "Missing target";
     return;
   }
   if (target.gameId !== game.id) {

@@ -2,6 +2,7 @@
 const Router = require("koa-router");
 const { Op } = require("sequelize");
 const characterData = require("../data/characters");
+const authUtils = require('../auth/jwt')
 
 const router = new Router();
 
@@ -74,12 +75,18 @@ router.get("game.show", "/", async (ctx) => {
   ctx.status = 200;
 });
 
-router.post("game.create", "/", async (ctx) => {
+router.post("game.create", "/", authUtils.GetUserID, async (ctx) => {
   const { lobbyId } = ctx.request.body;
+  const userId = ctx.params.id;
   const lobby = await ctx.orm.Lobby.findByPk(lobbyId);
   if (lobby == null) {
     ctx.status = 404;
     ctx.body = "Lobby not found";
+    return;
+  }
+  if (lobby.hostId != userId) {
+    ctx.status = 401;
+    ctx.body = "You are not the lobby owner you rascal!"
     return;
   }
   const participants = await ctx.orm.Participant.findAll({
@@ -135,12 +142,18 @@ router.post("game.create", "/", async (ctx) => {
   ctx.status = 201;
 });
 
-router.delete("game.delete", "/", async (ctx) => {    
+router.delete("game.delete", "/", authUtils.GetUserID,async (ctx) => {  
+  const userId = ctx.params.id;  
   const { id } = ctx.query;
   const game = await ctx.orm.Game.findByPk(id);
   if (game == null) {
     ctx.status = 404;
     ctx.body = "Game not found";
+    return;
+  }
+  if (game.pm != userId) {
+    ctx.status = 401;
+    ctx.body = "You are not the PM you rascal!"
     return;
   }
   await ctx.orm.Character.destroy({
