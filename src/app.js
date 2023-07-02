@@ -4,6 +4,7 @@ const { validate: swaggerValidate } = require("swagger2-koa");
 const { koaSwagger } = require("koa2-swagger-ui");
 const { koaBody } = require("koa-body");
 const koaLogger = require("koa-logger");
+const session = require('koa-session')
 // const cors = require("")
 const router = require("./routes");
 const orm = require("./models");
@@ -16,11 +17,16 @@ const swaggerDocument = swagger.loadDocumentSync("api.yaml");
 
 const app = new Koa();
 
+app.keys = ['some secret hurr'];
+
 app.context.orm = orm;
 
 // Middleware Koa
 app.use(koaLogger());
 app.use(koaBody());
+
+// Session Manager
+// app.use(session(app));
 
 // Swagger
 app.use(koaSwagger({
