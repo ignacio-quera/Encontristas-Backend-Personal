@@ -48,6 +48,13 @@ router.post("lobby.create", "/", async (ctx) => {
     ctx.body = "User not found";
     return;
   }
+  // const curLobby = await ctx.orm.Participant.findOne({ where: { userId } });
+  // const curGame = await ctx.orm.Player.findOne({ where: { userId } });
+  // if (curLobby || curGame) {
+  //   ctx.status = 400;
+  //   ctx.body = "Already in lobby or game";
+  //   return;
+  // }
   const lobby = await ctx.orm.Lobby.create({
     hostId: userId,
     name,
@@ -74,6 +81,13 @@ router.post("lobby.join", "/join", async (ctx) => {
     ctx.body = "User not found";
     return;
   }
+  // const curLobby = await ctx.orm.Participant.findOne({ where: { userId } });
+  // const curGame = await ctx.orm.Player.findOne({ where: { userId } });
+  // if (curLobby || curGame) {
+  //   ctx.status = 400;
+  //   ctx.body = "Already in lobby or game";
+  //   return;
+  // }
   if (await ctx.orm.Participant.findOne({ where: { lobbyId, userId } }) != null) {
     ctx.status = 400;
     ctx.body = "Already joined";
@@ -114,5 +128,7 @@ router.delete("lobby.delete", "/", async (ctx) => {
   ctx.body = "Lobby destroyed";
   ctx.status = 200;
 });
+
+// TODO: Exit lobby
 
 module.exports = router;

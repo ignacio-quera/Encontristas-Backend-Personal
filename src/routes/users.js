@@ -17,9 +17,24 @@ router.get("users.list", "/", async (ctx) => {
 });
 
 router.get("users.show", "/:id", async (ctx) => {
-  const user = await ctx.orm.User.findByPk(ctx.params.id);
-  console.log(`user with id ${ctx.params.id}: ${user}`);
-  ctx.body = user;
+  const rawUser = await ctx.orm.User.findByPk(ctx.params.id);
+  // const curLobby = await ctx.orm.Participant.findOne({
+  //   where: {
+  //     userId: rawUser.id,
+  //   },
+  // });
+  // const curGame = await ctx.orm.Player.findOne({
+  //   where: {
+  //     userId: rawUser.id,
+  //   },
+  // });
+  ctx.body = {
+    id: rawUser.id,
+    username: rawUser.username,
+    mail: rawUser.mail,
+    // currentLobby: curLobby?.lobbyId ?? null,
+    // currentGame: curGame?.gameId ?? null,
+  };
   ctx.status = 200;
 });
 
