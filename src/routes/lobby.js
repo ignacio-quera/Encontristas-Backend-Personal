@@ -4,7 +4,13 @@ const Router = require("koa-router");
 const router = new Router();
 
 router.get("lobby.list", "/list", async (ctx) => {
-  const lobbies = await ctx.orm.Lobby.findAll();
+  const rawLobbies = await ctx.orm.Lobby.findAll({ include: ctx.orm.User });
+  const lobbies = rawLobbies.map(lobby => ({
+    id: lobby.id,
+    name: lobby.name,
+    hostId: lobby.hostId,
+    hostName: lobby.User.username,
+  }));
   ctx.body = lobbies;
   ctx.status = 200;
 });
@@ -17,14 +23,19 @@ router.get("lobby.show", "/", async (ctx) => {
     ctx.body = "Lobby not found";
     return;
   }
-  const participants = await ctx.orm.Participant.findAll({
+  const rawParticipants = await ctx.orm.Participant.findAll({
     where: {
       lobbyId: lobby.id,
     },
+    include: ctx.orm.User,
   });
   ctx.body = {
     lobby,
-    participants,
+    participants: rawParticipants.map(part => ({
+      id: part.id,
+      userId: part.userId,
+      username: part.User.username,
+    })),
   };
   ctx.status = 200;
 });
@@ -37,6 +48,13 @@ router.post("lobby.create", "/", async (ctx) => {
     ctx.body = "User not found";
     return;
   }
+  // const curLobby = await ctx.orm.Participant.findOne({ where: { userId } });
+  // const curGame = await ctx.orm.Player.findOne({ where: { userId } });
+  // if (curLobby || curGame) {
+  //   ctx.status = 400;
+  //   ctx.body = "Already in lobby or game";
+  //   return;
+  // }
   const lobby = await ctx.orm.Lobby.create({
     hostId: userId,
     name,
@@ -63,6 +81,13 @@ router.post("lobby.join", "/join", async (ctx) => {
     ctx.body = "User not found";
     return;
   }
+  // const curLobby = await ctx.orm.Participant.findOne({ where: { userId } });
+  // const curGame = await ctx.orm.Player.findOne({ where: { userId } });
+  // if (curLobby || curGame) {
+  //   ctx.status = 400;
+  //   ctx.body = "Already in lobby or game";
+  //   return;
+  // }
   if (await ctx.orm.Participant.findOne({ where: { lobbyId, userId } }) != null) {
     ctx.status = 400;
     ctx.body = "Already joined";
@@ -103,5 +128,7 @@ router.delete("lobby.delete", "/", async (ctx) => {
   ctx.body = "Lobby destroyed";
   ctx.status = 200;
 });
+
+// TODO: Exit lobby
 
 module.exports = router;

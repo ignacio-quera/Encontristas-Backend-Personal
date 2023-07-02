@@ -6,9 +6,25 @@ const router = new Router();
 
 
 router.get("users.show", "/", authUtils.GetUserID, async (ctx) => {
-  const user = await ctx.orm.User.findByPk(ctx.params.id);
-  console.log(`user with id ${user.id}: ${user}`);
-  ctx.body = user;
+  const rawUser = await ctx.orm.User.findByPk(ctx.params.id);
+  console.log(`user with id ${rawUser.id}: ${rawUser}`);
+  // const curLobby = await ctx.orm.Participant.findOne({
+  //   where: {
+  //     userId: rawUser.id,
+  //   },
+  // });
+  // const curGame = await ctx.orm.Player.findOne({
+  //   where: {
+  //     userId: rawUser.id,
+  //   },
+  // });
+  ctx.body = {
+    id: rawUser.id,
+    username: rawUser.username,
+    mail: rawUser.mail,
+    // currentLobby: curLobby?.lobbyId ?? null,
+    // currentGame: curGame?.gameId ?? null,
+  };
   ctx.status = 200;
 });
 

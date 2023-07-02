@@ -12,7 +12,7 @@ const orm = require("./models");
 
 const swaggerDocument = swagger.loadDocumentSync("api.yaml");
 // if (!swagger.validateDocument(swaggerDocument)) {
-//   throw Error(`./api.yml does not conform to the Swagger 2.0 schema`);
+//   throw Error(`./api.yml does not conform to the OpenAPI schema`);
 // }
 
 const app = new Koa();

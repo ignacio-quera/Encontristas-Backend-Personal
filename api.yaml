@@ -13,29 +13,27 @@ paths:
     get:
       summary: "Check the status of the service"
       description: "If the service is up and running correctly the response will be 'UP'"
-      consumes:
-        - "application/json"
-      produces:
-        - "application/json"
       responses:
         200:
           description: "Service is up and healthy"
-          schema:
-            type: "object"
-            properties:
-              status:
-                type: "string"
-                enum:
-                  - "UP"
-                  - "DOWN"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  status:
+                    type: "string"
+                    enum:
+                      - "UP"
+                      - "DOWN"
         500:
-          $ref: '#/responses/500'
+          $ref: '#/components/responses/500'
   /users:
     post:
       summary: "Create a new user."
       description: "Allows to create a new user in the database with a username, password and mail"
       requestBody:
-        requeried: true
+        required: true
         content:
           application/json:
             schema:
@@ -88,15 +86,27 @@ paths:
               schema:
                 type: object
                 properties:
-                  id: integer
-                  username: string
-                  mail: string
-                  password: string
+                  id:
+                    type: integer
+                  username:
+                    type: string
+                  mail:
+                    type: string
+                  password:
+                    type: string
     put:
       summary: "Edit an existing user."
       description: "Given a user ID, change the user information."
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: The user ID.
       requestBody:
-        requeried: true
+        required: true
         content:
           application/json:
             schema:
@@ -188,7 +198,7 @@ paths:
           description: Item not found
     delete:
       summary: Delete an item.
-      descripition: Given an ID, delete the item.
+      description: Given an ID, delete the item.
       parameters:
         - in: query
           name: id
@@ -212,13 +222,18 @@ paths:
           content:  # Response body
             application/json:   # One of media types
               schema:
-                type: object
-                properties:
-                  hostId:
-                    type: integer
-                    description: ID of the user who is the host of this lobby.
-                  name:
-                    type: string
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    hostId:
+                      type: integer
+                      description: ID of the user who is the host of this lobby.
+                    hostName:
+                      type: string
+                      description: Name of the host user.
   /lobby:
     post:
       summary: Create a new lobby.
@@ -251,8 +266,10 @@ paths:
                 id:
                   type: integer
                   description: ID of the lobby to modify.
-                hostId: integer
-                name: string
+                hostId:
+                  type: integer
+                name:
+                  type: string
       responses:
         '200':
           description: Lobby updated successfully.
@@ -261,7 +278,7 @@ paths:
     get:
       summary: Show a especific lobby
       description: Give a lobby ID, show all the participants and the name of the lobby
-      parameteres:
+      parameters:
         - in: query
           name: id
           schema:
@@ -289,9 +306,12 @@ paths:
                     items:
                       type: object
                       properties:
-                        id: integer
-                        userId: integer
-                        lobbyId: integ
+                        id:
+                          type: integer
+                        userId:
+                          type: integer
+                        username:
+                          type: string
         '404':
           description: Lobby not found.
     delete:
@@ -413,7 +433,8 @@ paths:
             schema:
               type: object
               properties:
-                lobbyId: integer
+                lobbyId:
+                  type: integer
       responses:
         '201':
           description: Game created (and lobby destroyed).
@@ -452,8 +473,10 @@ paths:
                   game:
                     type: object
                     properties:
-                      id: integer
-                      name: string
+                      id:
+                        type: integer
+                      name:
+                        type: string
                       pm:
                         type: integer
                         description: User ID of the Pixel Master player (User ID, not Player ID).
@@ -468,38 +491,50 @@ paths:
                         enum: [players, monsters]
                         nullable: true
                         description: Who has won the game. (Or `null` if no one yet).
-                      createdAt: string
-                      updatedAt: string
+                      createdAt:
+                        type: string
+                      updatedAt:
+                        type: string
                   players:
                     type: array
                     items:
                       type: object
                       properties:
-                        id: integer
-                        userId: integer
-                        gameId: integer
+                        id:
+                          type: integer
+                        userId:
+                          type: integer
+                        gameId:
+                          type: integer
                       description: A single player (ie. a user within a game).
                   characters:
                     type: array
                     items:
                       type: object
                       properties:
-                        id: integer
-                        gameId: integer
+                        id:
+                          type: integer
+                        gameId:
+                          type: integer
                         playerId:
                           type: integer
                           description: The player controlling this character (possibly the Pixel Master).
                         type:
                           type: string
                           enum: [rogue, ranger, wizard, goblin]
-                        x: integer
-                        y: integer
+                        x:  
+                          type: integer
+                        y:
+                          type: integer
                         movement:
                           type: integer
                           description: The movement left in this turn (meaningless if it's not the turn of this character).
-                        turn: integer
-                        hp: integer
-                        dmg: integer
+                        turn:
+                          type: integer
+                        hp:
+                          type: integer
+                        dmg:
+                          type: integer
                       description: >
                         A single character on the board.
                         Usually each player has 1 character, but sometimes players have zero characters if they die.
@@ -509,18 +544,21 @@ paths:
                     items:
                       type: object
                       properties:
-                        id: integer
-                        gameId: integer
+                        id:
+                          type: integer
+                        gameId:
+                          type: integer
                         type:
                           type: string
                           enum: [health_potion, magic_weapon, cursed_weapon, speed_boots]
-                        x: integer
-                        y: integer
+                        x:
+                          type: integer
+                        y:
+                          type: integer
                       description: A single item in the board.
         '404':
           description: Game not found.
-responses:
-  500:
-    description: Internal Server Error
-    schema:
-      $ref: '#/definitions/Error'
+components:
+  responses:
+    500:
+      description: Internal Server Error
