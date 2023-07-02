@@ -66,7 +66,7 @@ router.get("game.show", "/", async (ctx) => {
     },
   });
   ctx.body = {
-    game,
+    info: game,
     players,
     characters,
     items,
@@ -135,7 +135,7 @@ router.post("game.create", "/", async (ctx) => {
   ctx.status = 201;
 });
 
-router.delete("game.delete", "/", async (ctx) => {    
+router.delete("game.delete", "/", async (ctx) => {
   const { id } = ctx.query;
   const game = await ctx.orm.Game.findByPk(id);
   if (game == null) {
