@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 const Router = require("koa-router");
 const { Op } = require("sequelize");
-const { advanceTurn } = require("./game");
+const { advanceTurn, boardSize } = require("./game");
 const authUtils = require('../auth/jwt')
 
 const itemData = require("../data/items");
@@ -10,7 +10,7 @@ const characterData = require("../data/characters");
 
 const router = new Router();
 
-router.post("characters.create", "/", authUtils.GetUserID,async (ctx) => {
+router.post("characters.create", "/", authUtils.GetUserID, async (ctx) => {
   const {
     gameId, type, x, y,
   } = ctx.request.body;
@@ -21,10 +21,16 @@ router.post("characters.create", "/", authUtils.GetUserID,async (ctx) => {
     ctx.body = "Game not found";
     return;
   }
-  if (game.pm != userId){
+  if (game.pm != userId) {
     ctx.status = 401;
     ctx.body = "Players can't create characters";
     return;
+  }
+  const proto = characterData[type]
+  if (proto == null) {
+    ctx.status = 400
+    ctx.body = "Invalid character type"
+    return
   }
   const pmUserId = game.pm;
   const pmPlayer = await ctx.orm.Player.findOne({
@@ -44,10 +50,10 @@ router.post("characters.create", "/", authUtils.GetUserID,async (ctx) => {
     type,
     x,
     y,
-    movement: characterData[type].movement,
+    movement: proto.movement,
     turn: lastTurn == null ? 0 : lastTurn.turn + 1,
-    hp: characterData[type].hp,
-    dmg: characterData[type].dmg,
+    hp: proto.hp,
+    dmg: proto.dmg,
   });
   ctx.body = character;
   ctx.status = 201;
@@ -98,13 +104,17 @@ router.post("characters.move", "/move", authUtils.GetUserID, async (ctx) => {
       return;
   }
   // checkear
+  if (x < 0 || x >= boardSize[0] || y < 0 || y >= boardSize[1]) {
+    ctx.body = "Outside board";
+    ctx.status = 401;
+    return
+  }
   const characters = await ctx.orm.Character.findAll({
     where: {
       gameId,
     },
   });
-  for (let k = 0; k < characters.length; k += 1) {
-    const char = characters[k];
+  for (const char of characters) {
     if (char.x === x && char.y === y) {
       ctx.body = "Character in the way";
       ctx.status = 401;
@@ -116,18 +126,18 @@ router.post("characters.move", "/move", authUtils.GetUserID, async (ctx) => {
       gameId,
     },
   });
-  for (let k = 0; k < items.length; k += 1) {
-    const item = items[k];
+  for (const item of items) {
     if (item.x === x && item.y === y) {
       const pickedItem = itemData[item.type];
       character.update(
         {
-          hp: character.hp + (pickedItem.hp || 0),
+          hp: Math.max(1, character.hp + (pickedItem.hp || 0)),
           dmg: character.dmg + (pickedItem.dmg || 0),
-          movement: character.movement + (pickedItem.dmg || 0),
+          movement: character.movement + (pickedItem.movement || 0),
         },
       );
-    } 
+      item.destroy()
+    }
   }
   character.x = x;
   character.y = y;
@@ -159,7 +169,7 @@ async function killCharacter(orm, character) {
         },
       }],
     });
-    if (lastEnemy == null) {
+    if (lastEnemy == null && game.winner === null) {
       // Game finished
       game.update({
         winner: "players",
@@ -180,7 +190,7 @@ async function killCharacter(orm, character) {
         },
       }],
     });
-    if (lastPlayer == null) {
+    if (lastPlayer == null && game.winner === null) {
       // No players left
       // Game finished
       game.update({
@@ -199,40 +209,46 @@ async function damageCharacter(orm, attacker, target, dmg) {
   }
 }
 
-router.post("characters.action", "/action", authUtils.GetUserID,async (ctx) => {
+router.post("characters.action", "/action", authUtils.GetUserID, async (ctx) => {
   const { characterId, targetId } = ctx.request.body;
   const character = await ctx.orm.Character.findByPk(characterId);
   const target = await ctx.orm.Character.findByPk(targetId);
   const userId = ctx.params.id;
+  const charData = characterData[character.type]
 
   const player = await ctx.orm.Player.findByPk(character.playerId);
   const userOfCharacter = await ctx.orm.User.findByPk(player.userId);
   if (userId != userOfCharacter.id) {
-    ctx.body = "You can't attack with a character that isn't your own";
+    ctx.body = { error: "You can't attack with a character that isn't your own" }
     ctx.status = 401;
     return;
   }
   // Do checks
   if (character == null) {
     ctx.status = 404;
-    ctx.body = "Character not found";
+    ctx.body = { error: "Character not found" }
     return;
   }
   const game = await ctx.orm.Game.findByPk(character.gameId);
   if (target == null) {
     ctx.status = 404;
-    ctx.body = "Missing target";
+    ctx.body = { error: "Missing target" }
     return;
   }
   if (target.gameId !== game.id) {
     ctx.status = 400;
-    ctx.body = "Target is not in the same game as character";
+    ctx.body = { error: "Target is not in the same game as character" }
     return;
   }
   if (character.turn !== game.turn) {
     ctx.status = 400;
-    ctx.body = "It is not the turn of the given character";
+    ctx.body = { error: "It is not the turn of the given character" }
     return;
+  }
+  if (Math.sqrt(Math.pow(character.x - target.x, 2) + Math.pow(character.y - target.y, 2)) > charData.range) {
+    ctx.status = 400
+    ctx.body = { error: "Objetivo fuera de tu alcance" }
+    return
   }
   // Make attack
   await damageCharacter(ctx.orm, character, target, character.dmg);
@@ -240,9 +256,11 @@ router.post("characters.action", "/action", authUtils.GetUserID,async (ctx) => {
   await advanceTurn(ctx.orm, game);
 
   ctx.status = 200;
-  ctx.body = `Dealt ${character.dmg} points of damage, target now has ${target.hp}`;
+  ctx.body = {
+    message: `Dealt ${character.dmg} points of damage, target now has ${target.hp}`,
+  }
   if (target.hp <= 0) {
-    ctx.body += " (target killed)";
+    ctx.body.message += " (target killed)";
   }
 });
 

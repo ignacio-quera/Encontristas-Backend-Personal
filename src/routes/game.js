@@ -6,6 +6,8 @@ const authUtils = require('../auth/jwt')
 
 const router = new Router();
 
+const boardSize = [8, 8]
+
 async function advanceTurn(orm, game) {
   // Find the next character in line
   let nextChar = await orm.Character.findOne({
@@ -108,6 +110,21 @@ router.post("game.create", "/", authUtils.GetUserID, async (ctx) => {
     winner: null,
   });
   await advanceTurn(ctx.orm, game);
+  // Randomize starting player positions
+  const positions = []
+  for (let k = 0; k < participants.length; k += 1) {
+    let [x, y] = [null, null]
+    for (let i = 0; i < 1000; i++) {
+      x = Math.floor(Math.random() * boardSize[0])
+      y = Math.floor(Math.random() * boardSize[1])
+      let ok = true
+      for (const pos of positions) {
+        if (pos[0] === x && pos[1] === y) ok = false
+      }
+      if (ok) break
+    }
+    positions.push([x, y])
+  }
   // Create players and their characters
   let j = 0;
   const promises = [];
@@ -126,8 +143,8 @@ router.post("game.create", "/", authUtils.GetUserID, async (ctx) => {
           gameId: game.id,
           playerId: player.id,
           type,
-          x: i,
-          y: 0,
+          x: positions[k][0],
+          y: positions[k][1],
           movement: characterData[type].movement,
           turn: i,
           hp: characterData[type].hp,
@@ -184,4 +201,5 @@ router.delete("game.delete", "/", authUtils.GetUserID, async (ctx) => {
 module.exports = {
   router,
   advanceTurn,
+  boardSize,
 };

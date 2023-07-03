@@ -94,3 +94,11 @@ El PM también tiene que jugar cuando le toca a sus enemigos.
 
 Cuando se maten a todos los enemigos o todos los aliados, el juego terminará, y se marcará la variable winner.
 El estado del juego se puede ver en cualquier momento con un request GET a /game.
+
+*NOTA*: Este flujo es implementado por el frontend, y es mas sencillo realizar el flujo a traves del frontend.
+
+## Deploy
+
+El backend se encuentra deployeado en Render [acá](https://encontristas-api.onrender.com).
+
+Se encuentra conectado con el frontend.

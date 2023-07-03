@@ -7,6 +7,7 @@
   "author": "ignacio-quera <ignacio.quera@uc.cl>",
   "license": "MIT",
   "dependencies": {
+    "@koa/cors": "^4.0.0",
     "bcrypt": "^5.1.0",
     "dotenv": "^16.3.1",
     "jsonwebtoken": "^9.0.0",

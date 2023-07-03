@@ -29,7 +29,6 @@ async function getUserLobbyAndGame(ctx, userId) {
 
 router.get("users.show", "/", authUtils.GetUserID, async (ctx) => {
   const rawUser = await ctx.orm.User.findByPk(ctx.params.id);
-  console.log(`user with id ${rawUser.id}: ${rawUser}`);
   const { curLobby, curGame } = await getUserLobbyAndGame(ctx, rawUser.id)
   ctx.body = {
     id: rawUser.id,
