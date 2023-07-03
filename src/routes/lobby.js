@@ -1,6 +1,7 @@
 /* eslint-disable no-alert, no-console */
 const Router = require("koa-router");
 const authUtils = require('../auth/jwt')
+const { getUserLobbyAndGame } = require('./users')
 
 const router = new Router();
 
@@ -49,13 +50,12 @@ router.post("lobby.create", "/", authUtils.GetUserID, async (ctx) => {
     ctx.body = "User not found";
     return;
   }
-  // const curLobby = await ctx.orm.Participant.findOne({ where: { userId } });
-  // const curGame = await ctx.orm.Player.findOne({ where: { userId } });
-  // if (curLobby || curGame) {
-  //   ctx.status = 400;
-  //   ctx.body = "Already in lobby or game";
-  //   return;
-  // }
+  const { curLobby, curGame } = await getUserLobbyAndGame(ctx, userId)
+  if (curLobby || curGame) {
+    ctx.status = 400;
+    ctx.body = "Already in lobby or game";
+    return;
+  }
   const lobby = await ctx.orm.Lobby.create({
     hostId: user.id,
     name,
@@ -69,7 +69,7 @@ router.post("lobby.create", "/", authUtils.GetUserID, async (ctx) => {
 });
 
 router.post("lobby.join", "/join", authUtils.GetUserID, async (ctx) => {
-  const {lobbyId } = ctx.request.body;
+  const { lobbyId } = ctx.request.body;
   const userId = ctx.params.id
   const lobby = await ctx.orm.Lobby.findByPk(lobbyId);
   if (lobby == null) {
@@ -83,13 +83,12 @@ router.post("lobby.join", "/join", authUtils.GetUserID, async (ctx) => {
     ctx.body = "User not found";
     return;
   }
-  // const curLobby = await ctx.orm.Participant.findOne({ where: { userId } });
-  // const curGame = await ctx.orm.Player.findOne({ where: { userId } });
-  // if (curLobby || curGame) {
-  //   ctx.status = 400;
-  //   ctx.body = "Already in lobby or game";
-  //   return;
-  // }
+  const { curLobby, curGame } = await getUserLobbyAndGame(ctx, userId)
+  if (curLobby || curGame) {
+    ctx.status = 400;
+    ctx.body = "Already in lobby or game";
+    return;
+  }
   if (await ctx.orm.Participant.findOne({ where: { lobbyId, userId } }) != null) {
     ctx.status = 400;
     ctx.body = "Already joined";

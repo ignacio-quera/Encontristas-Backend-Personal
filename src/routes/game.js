@@ -55,6 +55,7 @@ router.get("game.show", "/", async (ctx) => {
     where: {
       gameId: game.id,
     },
+    include: ctx.orm.User,
   });
   const characters = await ctx.orm.Character.findAll({
     where: {
@@ -67,8 +68,12 @@ router.get("game.show", "/", async (ctx) => {
     },
   });
   ctx.body = {
-    game,
-    players,
+    info: game,
+    players: players.map(player => ({
+      id: player.id,
+      userId: player.userId,
+      username: player.User.username,
+    })),
     characters,
     items,
   };
@@ -142,8 +147,8 @@ router.post("game.create", "/", authUtils.GetUserID, async (ctx) => {
   ctx.status = 201;
 });
 
-router.delete("game.delete", "/", authUtils.GetUserID,async (ctx) => {  
-  const userId = ctx.params.id;  
+router.delete("game.delete", "/", authUtils.GetUserID, async (ctx) => {
+  const userId = ctx.params.id;
   const { id } = ctx.query;
   const game = await ctx.orm.Game.findByPk(id);
   if (game == null) {
@@ -177,6 +182,6 @@ router.delete("game.delete", "/", authUtils.GetUserID,async (ctx) => {
 });
 
 module.exports = {
-  gameRouter: router,
+  router,
   advanceTurn,
 };

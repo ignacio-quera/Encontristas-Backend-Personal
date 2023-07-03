@@ -51,33 +51,7 @@ paths:
         '404':
           description: Failed to create user.
     get:
-      summary: "Show all users."
-      responses:
-        '200':      # Response
-          description: OK
-          content:  # Response body
-            application/json:   # One of media types
-              schema:
-                type: object
-                properties:
-                  username:
-                    type: string
-                  password:
-                    type: string
-                  mail:
-                    type: string
-  /users/{id}:
-    get:
-      summary: "Show an existing user."
-      description: "Given a user ID, displays the information of said user."
-      parameters:
-        - in: path
-          name: id   # Note the name is the same as in the path
-          required: true
-          schema:
-            type: integer
-            minimum: 1
-          description: The user ID
+      summary: "Show the currently logged-in user."
       responses:
         '200':
           description: User information found.
@@ -92,8 +66,12 @@ paths:
                     type: string
                   mail:
                     type: string
-                  password:
-                    type: string
+                  currentLobby:
+                    type: integer
+                    nullable: true
+                  currentGame:
+                    type: integer
+                    nullable: true
     put:
       summary: "Edit an existing user."
       description: "Given a user ID, change the user information."
@@ -504,8 +482,8 @@ paths:
                           type: integer
                         userId:
                           type: integer
-                        gameId:
-                          type: integer
+                        username:
+                          type: string
                       description: A single player (ie. a user within a game).
                   characters:
                     type: array
