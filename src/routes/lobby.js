@@ -50,6 +50,7 @@ router.post("lobby.create", "/", authUtils.GetUserID, async (ctx) => {
     ctx.body = "User not found";
     return;
   }
+  const userId = ctx.params.id
   const { curLobby, curGame } = await getUserLobbyAndGame(ctx, userId)
   if (curLobby || curGame) {
     ctx.status = 400;
